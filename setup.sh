@@ -84,11 +84,11 @@ fi
 # Install LazyVim
 echo -e "\033[32m✓\033[0m Installing AstroVim Template ..."
 # NOTE: Existing configs are backed up to /tmp before installation
-if [ -d "$HOME/dotfiles/nvim" ]; then
+if [ -d "$HOME/devbox/nvim" ]; then
 	if [ -d "/tmp/nvim" ]; then
 		rm -rf /tmp/nvim
 	fi
-	mv "$HOME/dotfiles/nvim" /tmp || {
+	mv "$HOME/devbox/nvim" /tmp || {
 		echo -e "\033[31m✗\033[0m Failed to cleanup existing nvim config"
 		exit 1
 	}
@@ -106,7 +106,7 @@ if [ -d ~/.cache/nvim ]; then
 fi
 
 # Clone AstroVim starter
-git clone --depth 1 https://github.com/AstroNvim/template "$HOME/dotfiles/nvim/.config/nvim" || {
+git clone --depth 1 https://github.com/AstroNvim/template "$HOME/devbox/nvim/.config/nvim" || {
 	echo -e "\033[31m✗\033[0m Failed to clone AstroVim starter"
 	exit 1
 }
@@ -117,22 +117,22 @@ rm -rf ~/.config/nvim/.git || {
 	exit 1
 }
 
-# Restore dotfiles
-DOTFILES_DIR="$HOME/dotfiles"
+# Restore devbox
+DOTFILES_DIR="$HOME/devbox"
 
-# Navigate to the dotfiles directory
+# Navigate to the devbox directory
 cd "$DOTFILES_DIR" || {
-	echo -e "\033[31m✗\033[0m $HOME/dotfiles not found"
+	echo -e "\033[31m✗\033[0m $HOME/devbox not found"
 	exit 1
 }
 
-echo "Restoring dotfiles ..."
+echo "Restoring configs ..."
 tldr --update
 
 # NOTE: Existing bashrc, git, nvim, tmux, and starship configs are moved to
 #       $HOME/.local/share/Trash/ or ~/.Trash (macOS) before stowing
 if command -v trash &>/dev/null; then
-	echo -e "\033[32m✓\033[0m Moving older configs and setting up dotfiles ..."
+	echo -e "\033[32m✓\033[0m Moving older configs and setting up devbox ..."
 	trash ~/.config/git
 	stow -R "git"
 	trash ~/.config/nvim
@@ -151,9 +151,9 @@ if command -v trash &>/dev/null; then
 	ASTROCORE_TARGET="$HOME/.config/nvim/lua/plugins/astrocore.lua"
 	NEOTREE_TARGET="$HOME/.config/nvim/lua/plugins/neo-tree.lua"
 	ASTROCOMMUNITY_TARGET="$HOME/.config/nvim/lua/community.lua"
-	ASTROCORE_SOURCE="$HOME/dotfiles/patches/nvim-custom-astrocore.lua"
-	NEOTREE_SOURCE="$HOME/dotfiles/patches/nvim-custom-neo-tree.lua"
-	ASTROCOMMUNITY_SOURCE="$HOME/dotfiles/patches/nvim-custom-community.lua"
+	ASTROCORE_SOURCE="$HOME/devbox/patches/nvim-custom-astrocore.lua"
+	NEOTREE_SOURCE="$HOME/devbox/patches/nvim-custom-neo-tree.lua"
+	ASTROCOMMUNITY_SOURCE="$HOME/devbox/patches/nvim-custom-community.lua"
 
 	# Validate that all source custom configuration files exist
 	echo "Validating custom configuration source files..."
