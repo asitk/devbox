@@ -12,12 +12,12 @@ return {
   opts = {
     -- Configure core features of AstroNvim
     features = {
-      large_buf = { size = 1024 * 256, lines = 10000 }, -- set global limits for large files for disabling features like treesitter
-      autopairs = true, -- enable autopairs at start
-      cmp = true, -- enable completion at start
+      large_buf = { size = 1024 * 256, lines = 10000 },          -- set global limits for large files for disabling features like treesitter
+      autopairs = true,                                          -- enable autopairs at start
+      cmp = true,                                                -- enable completion at start
       diagnostics = { virtual_text = true, virtual_lines = false }, -- diagnostic settings on startup
-      highlighturl = true, -- highlight URLs at start
-      notifications = true, -- enable notifications at start
+      highlighturl = true,                                       -- highlight URLs at start
+      notifications = true,                                      -- enable notifications at start
     },
     -- Diagnostics configuration (for vim.diagnostics.config({...})) when diagnostics are on
     diagnostics = {
@@ -45,11 +45,11 @@ return {
         -- spell = false,                 -- sets vim.opt.spell
         -- signcolumn = "yes",            -- sets vim.opt.signcolumn to yes
         -- wrap = false,                  -- sets vim.opt.wrap
-        backup = true,                    -- Enable backup
-        writebackup = true,               -- Enable writebackup
+        backup = true,                                         -- Enable backup
+        writebackup = true,                                    -- Enable writebackup
         backupdir = vim.fn.expand("~/.local/state/nvim/backup//"), -- Specify backup directory
-        backupext = ".bak",               -- Set custom extension
-        
+        backupext = ".bak",                                    -- Set custom extension
+
         -- Basic settings
         number = true,
         relativenumber = true,
@@ -105,15 +105,16 @@ return {
         backspace = "indent,eol,start",
         autochdir = false,
         iskeyword = vim.opt.iskeyword + "-", -- Appends "-"
-        path = vim.opt.path + "**",          -- Appends subdirectories
+        path = vim.opt.path + "**",      -- Appends subdirectories
         selection = "exclusive",
         mouse = "a",
-        clipboard = "unnamedplus",           -- AstroNvim handles append logic
+        clipboard = "unnamedplus", -- AstroNvim handles append logic
         modifiable = true,
         encoding = "UTF-8",
 
         -- Cursor settings
-        guicursor = "n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175",
+        guicursor =
+        "n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175",
 
         -- Folding settings
         foldmethod = "expr",
@@ -137,10 +138,12 @@ return {
         {
           event = "TextYankPost",
           desc = "Highlight yanked text",
-          callback = function() vim.highlight.on_yank() end,
+          callback = function()
+            vim.highlight.on_yank()
+          end,
         },
       },
-      
+
       -- Return to last edit position
       last_loc = {
         {
@@ -149,23 +152,26 @@ return {
           callback = function()
             local mark = vim.api.nvim_buf_get_mark(0, '"')
             local lcount = vim.api.nvim_buf_line_count(0)
-            if mark[1] > 0 and mark[1] <= lcount 
-              and vim.fn.index({ "commit", "gitrebase", "xxd" }, vim.bo.filetype) == -1 
-              and not vim.o.diff then
+            if
+                mark[1] > 0
+                and mark[1] <= lcount
+                and vim.fn.index({ "commit", "gitrebase", "xxd" }, vim.bo.filetype) == -1
+                and not vim.o.diff
+            then
               pcall(vim.api.nvim_win_set_cursor, 0, mark)
             end
           end,
         },
       },
-     
+
       -- Filetype-specific indentation
       ft_indentation = {
         {
           event = "FileType",
           pattern = { "lua", "python" },
           callback = function()
-            vim.opt_local.tabstop = 4
-            vim.opt_local.shiftwidth = 4
+            vim.opt_local.tabstop = 2
+            vim.opt_local.shiftwidth = 2
           end,
         },
         {
@@ -178,7 +184,20 @@ return {
         },
       },
 
-    backup_rotation = {
+      auto_open_neotree = {
+        {
+          event = "VimEnter",
+          desc = "Open Neo-tree on startup",
+          callback = function()
+            -- Only open if Neovim was launched without specific files
+            if vim.fn.argc() == 0 then
+              vim.cmd("Neotree show")
+            end
+          end,
+        },
+      },
+
+      backup_rotation = {
         {
           event = "BufWritePre",
           desc = "Add timestamp to backup and prune old copies",
@@ -188,22 +207,24 @@ return {
 
             -- 2. Cleanup Logic
             local max_backups = 2
-            
+
             -- Use vim.o instead of vim.opt to get a clean string
             local raw_dir = vim.o.backupdir
-            if not raw_dir or raw_dir == "" then return end
-            
+            if not raw_dir or raw_dir == "" then
+              return
+            end
+
             -- Strip the trailing // if it exists for the glob search
             local bdir = vim.fn.expand(raw_dir:gsub("//$", ""))
-            
+
             -- Encode current file path as Neovim does (slash -> %)
             local full_path = vim.fn.expand("%:p")
             local encoded_name = full_path:gsub("/", "%%")
-            
+
             -- Find all existing backups for this specific encoded path
             local pattern = bdir .. "/" .. encoded_name .. "*"
             local backups = vim.fn.glob(pattern, false, true)
-            
+
             table.sort(backups)
 
             -- Delete if we exceed the limit
@@ -229,7 +250,7 @@ return {
         -- Core Navigation
         ["<leader>vn"] = { ":tabnew<CR>", desc = "New tab" },
         ["<leader>vc"] = { ":tabclose<CR>", desc = "Close tab" },
-        
+
         -- Tab moving
         ["<leader>vm"] = { ":tabmove<CR>", desc = "Move tab" },
         ["<leader>v>"] = { ":tabmove +1<CR>", desc = "Move tab right" },
@@ -244,51 +265,51 @@ return {
 
         -- Enhanced Functions with your specific indentation
         ["<leader>vd"] = {
-            function()
-            local current_file = vim.fn.expand('%:p')
-            if current_file ~= '' then
-                vim.cmd('tabnew ' .. current_file)
+          function()
+            local current_file = vim.fn.expand("%:p")
+            if current_file ~= "" then
+              vim.cmd("tabnew " .. current_file)
             else
-                vim.cmd('tabnew')
+              vim.cmd("tabnew")
             end
-            end,
-            desc = "Duplicate current tab",
+          end,
+          desc = "Duplicate current tab",
         },
 
         ["<leader>vr"] = {
-            function()
+          function()
             local current_tab = vim.fn.tabpagenr()
-            local last_tab = vim.fn.tabpagenr('$')
+            local last_tab = vim.fn.tabpagenr("$")
 
             for i = last_tab, current_tab + 1, -1 do
-                vim.cmd(i .. 'tabclose')
+              vim.cmd(i .. "tabclose")
             end
-            end,
-            desc = "Close tabs to the right",
+          end,
+          desc = "Close tabs to the right",
         },
 
         ["<leader>vl"] = {
-            function()
+          function()
             local current_tab = vim.fn.tabpagenr()
 
             for i = current_tab - 1, 1, -1 do
-                vim.cmd('1tabclose')
+              vim.cmd("1tabclose")
             end
-            end,
-            desc = "Close tabs to the left",
+          end,
+          desc = "Close tabs to the left",
         },
 
         ["<leader>vo"] = {
-            function()
-            vim.ui.input({ prompt = 'File to open in new tab: ', completion = 'file' }, function(input)
-                if input and input ~= '' then
-                vim.cmd('tabnew ' .. input)
-                end
+          function()
+            vim.ui.input({ prompt = "File to open in new tab: ", completion = "file" }, function(input)
+              if input and input ~= "" then
+                vim.cmd("tabnew " .. input)
+              end
             end)
-            end,
-            desc = "Open file in new tab",
+          end,
+          desc = "Open file in new tab",
         },
-    
+
         -- Yank to EOL (consistent with D and C behavior)
         ["Y"] = { "y$", desc = "Yank to end of line" },
         -- Center screen when jumping through search results
@@ -296,7 +317,7 @@ return {
         ["N"] = { "Nzzzv", desc = "Previous search result (centered)" },
         -- Center screen when scrolling half-pages
         ["<C-d>"] = { "<C-d>zz", desc = "Half page down (centered)" },
-        ["<C-u>"] = { "<C-u>zz", desc = "Half page up (centered)" }, 
+        ["<C-u>"] = { "<C-u>zz", desc = "Half page up (centered)" },
         -- Delete without yanking
         ["<Leader>d"] = { '"_d', desc = "Delete without yanking" },
         -- Buffer navigation
@@ -313,11 +334,13 @@ return {
         ["<C-Up>"] = { ":resize +2<CR>", desc = "Increase window height" },
         ["<C-Down>"] = { ":resize -2<CR>", desc = "Decrease window height" },
         ["<C-Left>"] = { ":vertical resize -2<CR>", desc = "Decrease window width" },
-        ["<C-Right>"] = { ":vertical resize +2<CR>", desc = "Increase window width" }, 
+        ["<C-Right>"] = { ":vertical resize +2<CR>", desc = "Increase window width" },
         -- Quick config editing: Point directly to astrocore.lua
-        ["<Leader>rc"] = { 
-          function() vim.cmd("e " .. vim.fn.stdpath "config" .. "/lua/plugins/astrocore.lua") end, 
-          desc = "Edit AstroCore config" 
+        ["<Leader>rc"] = {
+          function()
+            vim.cmd("e " .. vim.fn.stdpath("config") .. "/lua/plugins/astrocore.lua")
+          end,
+          desc = "Edit AstroCore config",
         },
         -- Reloading (Note: AstroNvim handles most reloads automatically on save)
         ["<Leader>rl"] = { ":so $MYVIMRC<CR>", desc = "Reload init.lua" },
@@ -327,19 +350,29 @@ return {
         ["<A-j>"] = { ":m .+1<CR>==", desc = "Move line down" },
         ["<A-k>"] = { ":m .-2<CR>==", desc = "Move line up" },
         -- navigate buffer tabs
-        ["]b"] = { function() require("astrocore.buffer").nav(vim.v.count1) end, desc = "Next buffer" },
-        ["[b"] = { function() require("astrocore.buffer").nav(-vim.v.count1) end, desc = "Previous buffer" },
+        ["]b"] = {
+          function()
+            require("astrocore.buffer").nav(vim.v.count1)
+          end,
+          desc = "Next buffer",
+        },
+        ["[b"] = {
+          function()
+            require("astrocore.buffer").nav(-vim.v.count1)
+          end,
+          desc = "Previous buffer",
+        },
 
         -- mappings seen under group name "Buffer"
         ["<Leader>bd"] = {
           function()
-            require("astroui.status.heirline").buffer_picker(
-              function(bufnr) require("astrocore.buffer").close(bufnr) end
-            )
+            require("astroui.status.heirline").buffer_picker(function(bufnr)
+              require("astrocore.buffer").close(bufnr)
+            end)
           end,
           desc = "Close buffer from tabline",
         },
-        
+
         -- Copy Full File-Path
         ["<Leader>P"] = {
           function()

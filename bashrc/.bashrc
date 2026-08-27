@@ -137,6 +137,8 @@ alias sbsh='source ~/.bashrc'
 alias etmx='vi ~/.config/tmux/tmux.conf'
 alias envm='vi ~/.config/nvim/init.lua'
 
+cb() { xclip -selection clipboard < "$1"; }
+
 # alias to show the date
 alias da='date "+%Y-%m-%d %A %T %Z"'
 

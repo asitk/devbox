@@ -1,5 +1,8 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+[git_status]
+disabled = true
+
 [aws]
 symbol = " "
 
@@ -164,6 +167,7 @@ Zorin = " "
 
 [package]
 symbol = "󰏗 "
+disabled = true
 
 [perl]
 symbol = " "
