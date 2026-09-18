@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
 # Source global definitions
 if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
@@ -489,3 +492,8 @@ if command -v fzf >/dev/null 2>&1; then
 fi
 
 alias zi='cdi'
+
+# Load custom terminal configurations if the file exists
+if [ -f ~/.bash_custom ]; then
+    . ~/.bash_custom
+fi

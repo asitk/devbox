@@ -11,6 +11,19 @@ return {
   ---@type AstroCoreOpts
   opts = {
     -- Configure core features of AstroNvim
+    sessions = {
+      autosave = {
+        last = true, -- Auto-save the last state on exit
+        cwd = true, -- Auto-save directory sessions on exit/directory change
+      },
+      ignore = {
+        dirs = {},                            -- working directories to ignore sessions in
+        buftypes = {},                        -- buffer types to ignore
+        filetypes = { "gitcommit", "gitrebase" }, -- default ignored types
+        -- Ignore any file path matching a .bak or timestamped string
+        file_patterns = { "%.bak$", "%.bak%..*$", "_[0-9]+_[0-9]+$" },
+      },
+    },
     features = {
       large_buf = { size = 1024 * 256, lines = 10000 },          -- set global limits for large files for disabling features like treesitter
       autopairs = true,                                          -- enable autopairs at start
@@ -39,12 +52,8 @@ return {
     },
     -- vim options can be configured here
     options = {
-      opt = { -- vim.opt.<key>
-        -- relativenumber = true,         -- sets vim.opt.relativenumber
-        -- number = true,                 -- sets vim.opt.number
-        -- spell = false,                 -- sets vim.opt.spell
-        -- signcolumn = "yes",            -- sets vim.opt.signcolumn to yes
-        -- wrap = false,                  -- sets vim.opt.wrap
+      opt = {                                                  -- vim.opt.<key>
+        spell = false,                                         -- sets vim.opt.spell
         backup = true,                                         -- Enable backup
         writebackup = true,                                    -- Enable writebackup
         backupdir = vim.fn.expand("~/.local/state/nvim/backup//"), -- Specify backup directory
@@ -86,7 +95,7 @@ return {
         winblend = 0,
         conceallevel = 0,
         concealcursor = "",
-        lazyredraw = true,
+        lazyredraw = false,
         synmaxcol = 300,
 
         -- File handling
@@ -101,6 +110,9 @@ return {
 
         -- Behavior settings
         hidden = true,
+        -- tells Neovim to preserve all open buffers in memory
+        sessionoptions = "blank,buffers,curdir,folds,globals,help,tabpages,winsize,winpos,terminal",
+        viewoptions = "cursor,folds,slash,unix",
         errorbells = false,
         backspace = "indent,eol,start",
         autochdir = false,
@@ -109,7 +121,7 @@ return {
         selection = "exclusive",
         mouse = "a",
         clipboard = "unnamedplus", -- AstroNvim handles append logic
-        modifiable = true,
+        -- modifiable = true,
         encoding = "UTF-8",
 
         -- Cursor settings
@@ -143,27 +155,51 @@ return {
           end,
         },
       },
-
-      -- Return to last edit position
-      last_loc = {
+      -- Automatically handle the manual save sequence right before Neovim exits
+      auto_save_dirsession = {
         {
-          event = "BufReadPost",
-          desc = "Return to last edit position when opening files",
+          event = "VimLeavePre",
+          desc = "Bypass AstroNvim path tracking to force-write manual session data",
+          -- vim.schedule_wrap guarantees the function completes writing to disk before the app exits
+          callback = vim.schedule_wrap(function()
+            if vim.bo.filetype ~= "gitcommit" and vim.bo.filetype ~= "gitrebase" then
+              pcall(function()
+                -- Executes the exact underlying routine of Space + S + s
+                require("resession").save(vim.fn.getcwd(), { dir = "dirsession", notify = false })
+              end)
+            end
+          end),
+        },
+      },
+
+      -- Automatically handle the manual load sequence right as the window finishes drawing
+      auto_load_dirsession = {
+        {
+          event = "UIEnter",
+          desc = "Restore multi-directory tabs cleanly once the visual layout stabilizes",
+          nested = true, -- Allows secondary syntax / LSP plugins to hook into loaded files
           callback = function()
-            local mark = vim.api.nvim_buf_get_mark(0, '"')
-            local lcount = vim.api.nvim_buf_line_count(0)
-            if
-                mark[1] > 0
-                and mark[1] <= lcount
-                and vim.fn.index({ "commit", "gitrebase", "xxd" }, vim.bo.filetype) == -1
-                and not vim.o.diff
-            then
-              pcall(vim.api.nvim_win_set_cursor, 0, mark)
+            -- Only run if Neovim is launched with zero file arguments (just typing `nvim`)
+            if vim.fn.argc(-1) == 0 then
+              vim.schedule(function()
+                local resession = require("resession")
+                local cwd = vim.fn.getcwd()
+
+                -- Executes the exact underlying routine of Space + S + .
+                pcall(function()
+                  resession.load(cwd, { dir = "dirsession", silence_errors = true })
+                end)
+
+                -- FIXED: Forces Neo-tree to render your terminal's current directory root folder.
+                -- Providing an explicit directory route overrides out-of-bounds workspace prompts.
+                vim.schedule(function()
+                  vim.cmd("Neotree show dir=" .. vim.fn.getcwd())
+                end)
+              end)
             end
           end,
         },
       },
-
       -- Filetype-specific indentation
       ft_indentation = {
         {
@@ -184,50 +220,36 @@ return {
         },
       },
 
-      auto_open_neotree = {
-        {
-          event = "VimEnter",
-          desc = "Open Neo-tree on startup",
-          callback = function()
-            -- Only open if Neovim was launched without specific files
-            if vim.fn.argc() == 0 then
-              vim.cmd("Neotree show")
-            end
-          end,
-        },
-      },
-
       backup_rotation = {
         {
           event = "BufWritePre",
           desc = "Add timestamp to backup and prune old copies",
           callback = function()
-            -- 1. Set the new timestamped extension
-            vim.opt.backupext = "." .. os.date("%Y%m%d_%H%M%S")
+            -- 1. Set the new timestamped extension locally
+            vim.opt_local.backupext = "." .. os.date("%Y%m%d_%H%M%S")
 
-            -- 2. Cleanup Logic
             local max_backups = 2
 
-            -- Use vim.o instead of vim.opt to get a clean string
+            -- Safely retrieve and fully expand the home directory out of the option string
             local raw_dir = vim.o.backupdir
             if not raw_dir or raw_dir == "" then
               return
             end
 
-            -- Strip the trailing // if it exists for the glob search
+            -- Fully expand the path string so the system glob can read it natively
             local bdir = vim.fn.expand(raw_dir:gsub("//$", ""))
 
             -- Encode current file path as Neovim does (slash -> %)
             local full_path = vim.fn.expand("%:p")
             local encoded_name = full_path:gsub("/", "%%")
 
-            -- Find all existing backups for this specific encoded path
+            -- 2. Find all existing backups for this specific encoded path
             local pattern = bdir .. "/" .. encoded_name .. "*"
             local backups = vim.fn.glob(pattern, false, true)
 
             table.sort(backups)
 
-            -- Delete if we exceed the limit
+            -- 3. Delete if we exceed the limit
             if #backups > max_backups then
               local num_to_delete = #backups - max_backups
               for i = 1, num_to_delete do
