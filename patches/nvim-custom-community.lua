@@ -17,6 +17,7 @@ return {
   { import = "astrocommunity.colorscheme.catppuccin" },
   { import = "astrocommunity.colorscheme.tokyonight-nvim" },
   { import = "astrocommunity.pack.python" },
+  { import = "astrocommunity.pack.quarto" },
   { import = "astrocommunity.pack.rust" },
   { import = "astrocommunity.pack.lua" },
   { import = "astrocommunity.pack.zig" },
@@ -30,4 +31,10 @@ return {
   { import = "astrocommunity.pack.sql" },
   { import = "astrocommunity.pack.typescript" },
   { import = "astrocommunity.pack.cpp" },
+  { import = "astrocommunity.pack.bash" },
+  { import = "astrocommunity.pack.go" },
+  { import = "astrocommunity.pack.swift" },
+  { import = "astrocommunity.fuzzy-finder.fzf-lua" },
+  { import = "astrocommunity.motion.flash-nvim" },
+  { import = "astrocommunity.motion.mini-surround" },
 }

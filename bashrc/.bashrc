@@ -5,8 +5,12 @@
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
+	# shellcheck disable=SC1091
 	. /etc/bashrc
 fi
+
+# Detect Operating System 
+OS_TYPE="$(uname)"
 
 # User specific environment
 # Helper function for exact PATH matching
@@ -24,6 +28,62 @@ if ! path_exists "$HOME/bin"; then
 	PATH="$HOME/bin:$PATH"
 fi
 
+# Add Cargo bin path if not already in PATH
+if ! path_exists "$HOME/.cargo/bin"; then
+	export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
+# Linux-Specific Flatpak Paths
+if [[ "$OS_TYPE" == "Linux" ]]; then
+	if ! path_exists "/var/lib/flatpak/exports/bin"; then
+		export PATH="/var/lib/flatpak/exports/bin:$PATH"
+	fi
+	if ! path_exists "$HOME/.local/share/flatpak/exports/bin"; then
+		export PATH="$HOME/.local/share/flatpak/exports/bin:$PATH"
+	fi
+fi
+
+# Dynamic Cross-Platform Homebrew Initialization
+if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [ -f "/opt/homebrew/bin/brew" ]; then
+	eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f "/usr/local/bin/brew" ]; then
+	eval "$(/usr/local/bin/brew shellenv)"
+elif [ -f "$HOME/.linuxbrew/bin/brew" ]; then
+	# shellcheck disable=SC2086
+	eval "$($HOME/.linuxbrew/bin/brew shellenv)"
+fi
+
+# Brew configuration with safe PATH additions
+if command -v brew >/dev/null 2>&1; then
+	# Add brew gnubin paths only if not already in PATH
+	if ! path_exists "$(brew --prefix coreutils)/libexec/gnubin"; then
+		coreutils_path="$(brew --prefix coreutils)/libexec/gnubin"
+		export PATH="$coreutils_path:$PATH"
+	fi
+
+	if ! path_exists "$(brew --prefix gnu-sed)/libexec/gnubin"; then
+		gnu_sed_path="$(brew --prefix gnu-sed)/libexec/gnubin"
+		export PATH="$gnu_sed_path:$PATH"
+	fi
+
+	if ! path_exists "$(brew --prefix gnu-tar)/libexec/gnubin"; then
+		gnu_tar_path="$(brew --prefix gnu-tar)/libexec/gnubin"
+		export PATH="$gnu_tar_path:$PATH"
+	fi
+
+	# Add bash completion2 for bash >= 4.2
+	if [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]]; then
+		# shellcheck disable=SC1091
+		source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
+	# Invoke bash completion for bash < 4.2
+	elif [ -f "$(brew --prefix)/etc/bash_completion.sh" ]; then
+		# shellcheck disable=SC1091
+		. "$(brew --prefix)/etc/bash_completion.sh"
+	fi
+fi
+
 export PATH
 
 # Uncomment the following line if you don't like \
@@ -34,6 +94,7 @@ export PATH
 if [ -d ~/.bashrc.d ]; then
 	for rc in ~/.bashrc.d/*; do
 		if [ -f "$rc" ]; then
+			# shellcheck disable=SC1090
 			. "$rc"
 		fi
 	done
@@ -45,19 +106,8 @@ if ! pgrep -u "$USER" ssh-agent >/dev/null; then
 	eval "$(ssh-agent -s)"
 fi
 
-# Add bash completion2 for bash >= 4.2
-if [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]]; then
-	source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
-fi
-
-# Invoke bash completion for bash < 4.2
-if [ -f "$(brew --prefix)/etc/bash_completion.sh" ]; then
-	. "$(brew --prefix)/etc/bash_completion.sh"
-fi
-
 # Disable the bell
 if [[ $- == *i* ]]; then bind "set bell-style visible"; fi
-
 #######################################################
 # EXPORTS
 #######################################################
@@ -65,7 +115,7 @@ if [[ $- == *i* ]]; then bind "set bell-style visible"; fi
 # Expand the history size
 export HISTFILESIZE=10000
 export HISTSIZE=500
-export HISTTIMEFORMAT="%F %T" # add timestamp to history
+export HISTTIMEFORMAT="%F %T " # add timestamp to history
 
 # Don't put duplicate lines in the history and do not add lines that \
 # start with a space
@@ -117,9 +167,8 @@ if command -v rg &>/dev/null; then
 else
 	# Alias grep to /usr/bin/grep with GREP_OPTIONS if ripgrep is \
 	# not installed
-	alias grep="/usr/bin/grep \${GREP_OPTIONS}"
+	alias grep="/usr/bin/grep"
 fi
-unset GREP_OPTIONS
 
 # Color for manpages in less makes manpages a little easier to read
 export LESS_TERMCAP_mb=$'\E[01;31m'
@@ -140,7 +189,14 @@ alias sbsh='source ~/.bashrc'
 alias etmx='vi ~/.config/tmux/tmux.conf'
 alias envm='vi ~/.config/nvim/init.lua'
 
-cb() { xclip -selection clipboard < "$1"; }
+# Copy file contents to Clipboard
+cb() {
+	if [[ "$OS_TYPE" == "Darwin" ]]; then
+		cat "$1" | pbcopy
+	else
+		xclip -selection clipboard <"$1"
+	fi
+}
 
 # alias to show the date
 alias da='date "+%Y-%m-%d %A %T %Z"'
@@ -150,6 +206,7 @@ alias c='clear'
 alias cp='cp -i'
 alias mv='mv -i'
 
+# Safe delete
 if command -v trash >/dev/null 2>&1; then
 	alias rm='trash -v'
 fi
@@ -159,13 +216,9 @@ alias ps='ps auxf'
 alias ping='ping -c 10'
 alias less='less -R'
 alias cls='clear'
-# alias apt-get='sudo apt-get'  # Uncomment on Debian/Ubuntu
 alias multitail='multitail --no-repeat -c'
-# alias freshclam='sudo freshclam'  # Uncomment to enable ClamAV updates (Linux only)
 alias svi='sudo vi'
 alias vis='nvim "+set si"'
-# alias yayf="yay -Slq | fzf --multi --preview 'yay -Sii {1}' --preview-window=down:75% | \
-# xargs -ro yay -S"  # AUR helper - uncomment on Arch Linux with yay installed
 
 if command -v bat >/dev/null 2>&1; then
 	alias cat='bat'
@@ -216,24 +269,30 @@ alias h="history | grep "
 
 # Search running processes
 alias p="ps aux | grep "
-alias topcpu="/bin/ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10"
+
+if [[ "$OS_TYPE" == "Darwin" ]]; then
+	alias ps='ps aux'
+	alias topcpu="ps -eo pcpu,pid,user,command | sort -k 1 -r | head -10"
+else
+	alias ps='ps auxf'
+	alias topcpu="/bin/ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10"
+fi
 
 # Search files in the current folder
 alias f="find . | grep "
 
 # Count all files (recursively) in the current folder
-# shellcheck disable=SC2154  # 'type' is a loop variable in this alias
-alias countfiles="for type in files links directories; do echo \`find . -type \${type:0:1} | wc -l\` \$type; \
-done 2> /dev/null"
+# shellcheck disable=SC2154
+alias countfiles='for type in files links directories; do echo "$(find . -type ${type:0:1} | wc -l) $type"; done 2> /dev/null'
 
 # To see if a command is aliased, a file, or a built-in command
 alias checkcommand="type -t"
 
 # Show open ports
-if [[ "$(uname)" == "Darwin" ]]; then
-  alias openports='netstat -anp tcp | grep LISTEN'
+if [ "$OS_TYPE" = "Darwin" ]; then
+	alias openports='netstat -anp tcp | grep LISTEN'
 else
-  alias openports='netstat -nape --inet'
+	alias openports='netstat -nape --inet'
 fi
 
 # Alias's for safe and forced reboots
@@ -242,12 +301,13 @@ alias rebootforce='sudo shutdown -r -n now'
 
 # Alias's to show disk space and space used in a folder
 alias diskspace="du -S | sort -n -r |more"
-alias folders='du -h --max-depth=1'
-alias folderssort='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | \
-sort -rn'
+
+# Universal portable du flag changes
+alias folders='du -h -d 1'
+alias folderssort='find . -type d -maxdepth 1 -print0 | xargs -0 du -sk | sort -rn'
 alias tree='tree -CAhF --dirsfirst'
 alias treed='tree -CAFd'
-alias mountedinfo='df -hT'
+alias mountedinfo='df -h'
 
 # Alias's for archives
 alias mktar='tar -cvf'
@@ -258,27 +318,18 @@ alias unbz2='tar -xvjf'
 alias ungz='tar -xvzf'
 
 # Show all logs in /var/log
-if [[ "$(uname)" == "Darwin" ]]; then
-  alias logs='echo "macOS logs: Use Console app or check /var/log/"'
+if [ "$OS_TYPE" = "Darwin" ]; then
+	alias logs='echo "macOS logs: Use Console app or check /var/log/"'
 else
-  alias logs="sudo find /var/log -type f -exec file {} \; | grep 'text' | cut -d' ' -f1 | \
-sed -e's/:$//g' | grep -v '[0-9]$' | xargs tail -f"
+	alias logs='sudo find /var/log -type f -exec file {} \; | grep "text" | cut -d" " -f1 | sed "s/://g" | xargs tail -f'
 fi
 
 # SHA1
 alias sha1='openssl sha1'
 
-# clickpaste removed - see tmux copy-mode for clipboard support
-
-# alias to cleanup unused docker containers, images, networks, and \
-# volumes
-
+# alias to cleanup unused docker containers, images, networks, and volumes
 if command -v docker >/dev/null 2>&1; then
-	alias docker-clean=' \
-  	docker container prune -f ; \
-  	docker image prune -f ; \
-  	docker network prune -f ; \
-  	docker volume prune -f '
+	alias docker-clean='docker container prune -f ; docker image prune -f ; docker network prune -f ; docker volume prune -f '
 fi
 
 #######################################################
@@ -314,18 +365,13 @@ extract() {
 	done
 }
 
-# Searches for text in all files in the current folder
+# Searches for text in all files recursively, bypassing broken global aliases
 ftext() {
-	# -i case-insensitive
-	# -I ignore binary files
-	# -H causes filename to be printed
-	# -r recursive search
-	# -n causes line number to be printed
-	# optional: -F treat search term as a literal, not a regular \
-	# expression
-	# optional: -l only print filenames and not the matching lines ex. \
-	# grep -irl "$1" *
-	grep -iIHrn --color=always "$1" . | less -r
+	if command -v rg &>/dev/null; then
+		rg -i --color=always "$1" . | less -R
+	else
+		command grep -iIrn --color=always "$1" . | less -R
+	fi
 }
 
 # Copy and go to the directory
@@ -352,57 +398,45 @@ mkdirg() {
 	cd "$1" || return 1
 }
 
+# Modern pure-Bash path loop implementation that completely avoids parsing errors
 # Goes up a specified number of directories  (i.e. up 4)
 up() {
-	local d=""
-	limit=$1
-	for ((i = 1; i <= limit; i++)); do
-		d=$d/..
+	local limit=${1:-1}
+	local target="."
+	local i
+	for ((i = 0; i < limit; i++)); do
+		target="${target}/.."
 	done
-	d=$(echo $d | sed 's/^\///')
-	if [ -z "$d" ]; then
-		d=..
-	fi
-	cd "$d" || return 1
+	cd "$target" || return 1
 }
 
 # Automatically do an ls after each cd, z, or zoxide
 cd() {
 	if [ -n "$1" ]; then
 		builtin cd "$@" && ls
-	else
-		builtin cd ~ && ls
 	fi
 }
 
 # Returns the last 2 fields of the working directory
 pwdtail() {
-	pwd | awk -F/ '{nlast = NF -1;print $nlast"/"$NF}'
+	pwd | awk -F/ '{nlast = NF -1; print $nlast"/"$NF}'
 }
 
 # IP address lookup
-function whatsmyip() {
-	# Internal IP Lookup
-	if [[ "$(uname)" == "Darwin" ]]; then
-		# macOS: Use en0 (primary) or en1 (WiFi)
-		internal_ip=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null)
-		echo -n "Internal IP: $internal_ip"
+whatsmyip() {
+	echo -n "Internal IP: "
+	if [ "$OS_TYPE" = "Darwin" ]; then
+		ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null
 	else
-		# Linux: Dynamic interface detection
-		if command -v ip &>/dev/null; then
-			interface=$(ip route | awk '/default/ { print $5; exit }')
-			echo -n "Internal IP: "
-			ip addr show "$interface" 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1
+		if command -v hostname >/dev/null 2>&1; then
+			hostname -I | awk '{print $1}'
 		else
-			echo -n "Internal IP: "
 			ifconfig | grep "inet " | awk '{print $2}' | head -1
 		fi
 	fi
-
-	# External IP Lookup
-	echo ""
 	echo -n "External IP: "
-	curl -4 ifconfig.me 2>/dev/null || curl -4 ipinfo.io/ip 2>/dev/null
+	curl -s -4 ifconfig.me 2>/dev/null || curl -s -4 ipinfo.io/ip 2>/dev/null
+	echo ""
 }
 
 # GitHub Additions
@@ -412,49 +446,12 @@ gcom() {
 }
 lazyg() {
 	git add .
-	git commit -m "$1"
-	git push
+	git commit -m "$1" && git push
 }
 
 # Check if the shell is interactive
 if [[ $- == *i* ]]; then
-	# Bind Ctrl+f to insert 'zi' followed by a newline
 	bind '"\C-f":"zi\n"'
-fi
-
-# Add Cargo bin path if not already in PATH
-if ! path_exists "$HOME/.cargo/bin"; then
-	export PATH="$HOME/.cargo/bin:$PATH"
-fi
-
-# Add Flatpak export paths if not already in PATH
-if ! path_exists "/var/lib/flatpak/exports/bin"; then
-	export PATH="/var/lib/flatpak/exports/bin:$PATH"
-fi
-
-if ! path_exists "/.local/share/flatpak/exports/bin"; then
-	export PATH="/.local/share/flatpak/exports/bin:$PATH"
-fi
-
-# Brew configuration with safe PATH additions
-if command -v brew >/dev/null 2>&1; then
-	eval "$(brew shellenv)"
-
-	# Add brew gnubin paths only if not already in PATH
-	if ! path_exists "$(brew --prefix coreutils)/libexec/gnubin"; then
-		coreutils_path="$(brew --prefix coreutils)/libexec/gnubin"
-		export PATH="$coreutils_path:$PATH"
-	fi
-
-	if ! path_exists "$(brew --prefix gnu-sed)/libexec/gnubin"; then
-		gnu_sed_path="$(brew --prefix gnu-sed)/libexec/gnubin"
-		export PATH="$gnu_sed_path:$PATH"
-	fi
-
-	if ! path_exists "$(brew --prefix gnu-tar)/libexec/gnubin"; then
-		gnu_tar_path="$(brew --prefix gnu-tar)/libexec/gnubin"
-		export PATH="$gnu_tar_path:$PATH"
-	fi
 fi
 
 # Clean up helper function
@@ -470,30 +467,119 @@ fi
 if command -v zoxide >/dev/null 2>&1; then
 	eval "$(zoxide init --cmd cd bash)"
 fi
-if command -v starship >/dev/null 2>&1; then
+if command -v fzf >/dev/null 2>&1; then
 	eval "$(fzf --bash)"
 fi
 
 if command -v fzf >/dev/null 2>&1; then
-	# Detect Operating System and set clipboard tool
-	case "$(uname)" in
-	Darwin*) CLIP_CMD="pbcopy" ;;                    # macOS
-	Linux*) CLIP_CMD="xclip -selection clipboard" ;; # Linux
-	*) CLIP_CMD="cat" ;;                             # Fallback (printsc)
+	case "$OS_TYPE" in
+	Darwin*) CLIP_CMD="pbcopy" ;;
+	Linux*) CLIP_CMD="xclip -selection clipboard" ;;
+	*) CLIP_CMD="cat" ;;
 	esac
 
-	# fzf opts
-	export FZF_CTRL_R_OPTS='
-			--preview "echo {}" --preview-window down:3:hidden:wrap
-      --bind "ctrl-/:toggle-preview"
-      --bind "ctrl-y:execute-silent(echo -n {2..} | '"$CLIP_CMD"')+abort"
-      --color "header:italic:underline"
-      --header "Press CTRL-Y to copy command, CTRL-/ to toggle preview"'
+	# 1. Upgrade the search engine to use 'fd' or 'ripgrep' if available
+	if command -v fd &>/dev/null; then
+		export FZF_CTRL_T_COMMAND="fd --type f --strip-cwd-prefix --hidden --follow --exclude .git"
+	elif command -v rg &>/dev/null; then
+		export FZF_CTRL_T_COMMAND="rg --files --hidden --follow --glob '!/.git/*'"
+	fi
+
+	# 2. Conditional Layout (Uses rich previews only if tools exist, with clean fallbacks)
+	if command -v bat &>/dev/null && command -v eza &>/dev/null; then
+		# Ultimate Programmer Setup (Both bat and eza are installed)
+		export FZF_CTRL_T_OPTS="
+			--height 80% --layout reverse --border
+			--prompt '🔍 Files > '
+			--header '💡 [Ctrl-/] Toggle Preview | [Ctrl-Y] Copy Path'
+			--preview 'if [ -d {} ]; then eza --tree --level=2 --icons --color=always {} 2>/dev/null; else bat --style=numbers --color=always --line-range :500 {} 2>/dev/null; fi'
+			--preview-window 'right:55%:hidden:wrap'
+			--bind 'ctrl-/:toggle-preview'
+			--bind 'ctrl-y:execute-silent(echo -n {} | $CLIP_CMD)+abort'
+		"
+	else
+		# Universal Fallback Setup (Safe for any standard Linux/macOS machine)
+		export FZF_CTRL_T_OPTS="
+			--height 80% --layout reverse --border
+			--prompt '🔍 Files > '
+			--header '💡 [Ctrl-/] Toggle Preview | [Ctrl-Y] Copy Path'
+			--preview 'if [ -d {} ]; then tree -C -L 2 {} 2>/dev/null || ls -F {}; else cat {} 2>/dev/null; fi'
+			--preview-window 'right:55%:hidden:wrap'
+			--bind 'ctrl-/:toggle-preview'
+			--bind 'ctrl-y:execute-silent(echo -n {} | $CLIP_CMD)+abort'
+		"
+	fi
+
+	# 3. Existing History Search Options (Preserved exactly as you had it)
+	export FZF_CTRL_R_OPTS="
+			--preview 'echo {}' --preview-window down:3:hidden:wrap
+      --bind 'ctrl-/:toggle-preview'
+      --bind 'ctrl-y:execute-silent(echo -n {2..} | $CLIP_CMD)+abort'
+      --color 'header:italic:underline'
+      --header 'Press CTRL-Y to copy command, CTRL-/ to toggle preview'"
+
+	# ========================================================
+	# 🔍 Global FZF Custom Tab-Completion Engine (All Commands)
+	# ========================================================
+	_fzf_comprun() {
+		local command=$1
+		shift
+
+		case "$command" in
+		export | unset)
+			# 🔐 Environment Variables: Displays internal value readouts
+			# shellcheck disable=SC2016
+			fzf "$@" \
+				--prompt "🔐 Variables > " \
+				--preview 'eval echo \${}' \
+				--preview-window 'right:50%:wrap'
+			;;
+		cd)
+			# 📂 Directory Changer: Shows folder structures using eza or tree
+			fzf "$@" \
+				--prompt "📂 Change Dir > " \
+				--preview 'if command -v eza &>/dev/null; then eza --tree --level=2 --icons --color=always {} 2>/dev/null; else tree -C -L 2 {} 2>/dev/null || ls -F {}; fi' \
+				--preview-window 'right:50%:wrap'
+			;;
+		kill)
+			# ⚡ Process Killer: Shows rich CPU/Memory details of the target application PID
+			# shellcheck disable=SC2016
+			fzf "$@" \
+				--prompt "⚡ Kill Process > " \
+				--preview 'if [[ "$OS_TYPE" == "Darwin" ]]; then ps -p {} -o comm,pcpu,pmem; else ps -fp {} 2>/dev/null || ps -p {} -o comm,pcpu,pmem; fi' \
+				--preview-window 'bottom:3:wrap'
+			;;
+		ssh)
+			# 🌐 Remote SSH Connection: Previews host connection configurations
+			fzf "$@" \
+				--prompt "🌐 SSH Hosts > " \
+				--preview 'grep -A 5 "Host {}" ~/.ssh/config 2>/dev/null || echo "No custom SSH config entry found for {}"' \
+				--preview-window 'right:50%:wrap'
+			;;
+		*)
+			# 📄 Universal Fallback: (e.g., cat **, nvim **) Previews file contents using bat or cat
+			fzf "$@" \
+				--prompt "📄 Files > " \
+				--preview 'if [ -d {} ]; then eza --tree --level=2 --icons --color=always {} 2>/dev/null || tree -C -L 2 {}; else bat --style=numbers --color=always --line-range :200 {} 2>/dev/null || cat {}; fi' \
+				--preview-window 'right:55%:hidden:wrap' \
+				--bind 'ctrl-/:toggle-preview'
+			;;
+		esac
+	}
+
 fi
 
+# Linked cleanly beneath the zoxide runtime loader setup
 alias zi='cdi'
 
 # Load custom terminal configurations if the file exists
 if [ -f ~/.bash_custom ]; then
-    . ~/.bash_custom
+	# shellcheck disable=SC1090
+	. ~/.bash_custom
+else
+	# Load custom terminal configurations if the file exists
+	if [ -f ~/.config/bash/bash_custom ]; then
+		# shellcheck disable=SC1090
+		. ~/.config/bash/bash_custom
+	fi
 fi

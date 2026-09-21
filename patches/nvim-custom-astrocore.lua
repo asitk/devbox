@@ -17,20 +17,20 @@ return {
         cwd = true, -- Auto-save directory sessions on exit/directory change
       },
       ignore = {
-        dirs = {},                            -- working directories to ignore sessions in
-        buftypes = {},                        -- buffer types to ignore
+        dirs = {}, -- working directories to ignore sessions in
+        buftypes = {}, -- buffer types to ignore
         filetypes = { "gitcommit", "gitrebase" }, -- default ignored types
         -- Ignore any file path matching a .bak or timestamped string
         file_patterns = { "%.bak$", "%.bak%..*$", "_[0-9]+_[0-9]+$" },
       },
     },
     features = {
-      large_buf = { size = 1024 * 256, lines = 10000 },          -- set global limits for large files for disabling features like treesitter
-      autopairs = true,                                          -- enable autopairs at start
-      cmp = true,                                                -- enable completion at start
+      large_buf = { size = 1024 * 256, lines = 10000 }, -- set global limits for large files for disabling features like treesitter
+      autopairs = true, -- enable autopairs at start
+      cmp = true, -- enable completion at start
       diagnostics = { virtual_text = true, virtual_lines = false }, -- diagnostic settings on startup
-      highlighturl = true,                                       -- highlight URLs at start
-      notifications = true,                                      -- enable notifications at start
+      highlighturl = true, -- highlight URLs at start
+      notifications = true, -- enable notifications at start
     },
     -- Diagnostics configuration (for vim.diagnostics.config({...})) when diagnostics are on
     diagnostics = {
@@ -52,12 +52,12 @@ return {
     },
     -- vim options can be configured here
     options = {
-      opt = {                                                  -- vim.opt.<key>
-        spell = false,                                         -- sets vim.opt.spell
-        backup = true,                                         -- Enable backup
-        writebackup = true,                                    -- Enable writebackup
-        backupdir = vim.fn.expand("~/.local/state/nvim/backup//"), -- Specify backup directory
-        backupext = ".bak",                                    -- Set custom extension
+      opt = { -- vim.opt.<key>
+        spell = false, -- sets vim.opt.spell
+        backup = true, -- Enable backup
+        writebackup = true, -- Enable writebackup
+        backupdir = vim.fn.expand "~/.local/state/nvim/backup//", -- Specify backup directory
+        backupext = ".bak", -- Set custom extension
 
         -- Basic settings
         number = true,
@@ -101,7 +101,7 @@ return {
         -- File handling
         swapfile = false,
         undofile = true,
-        undodir = vim.fn.expand("~/.vim/undodir"),
+        undodir = vim.fn.expand "~/.vim/undodir",
         updatetime = 300,
         timeoutlen = 500,
         ttimeoutlen = 0,
@@ -117,7 +117,7 @@ return {
         backspace = "indent,eol,start",
         autochdir = false,
         iskeyword = vim.opt.iskeyword + "-", -- Appends "-"
-        path = vim.opt.path + "**",      -- Appends subdirectories
+        path = vim.opt.path + "**", -- Appends subdirectories
         selection = "exclusive",
         mouse = "a",
         clipboard = "unnamedplus", -- AstroNvim handles append logic
@@ -125,8 +125,7 @@ return {
         encoding = "UTF-8",
 
         -- Cursor settings
-        guicursor =
-        "n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175",
+        guicursor = "n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175",
 
         -- Folding settings
         foldmethod = "expr",
@@ -150,9 +149,7 @@ return {
         {
           event = "TextYankPost",
           desc = "Highlight yanked text",
-          callback = function()
-            vim.highlight.on_yank()
-          end,
+          callback = function() vim.highlight.on_yank() end,
         },
       },
       -- Automatically handle the manual save sequence right before Neovim exits
@@ -182,19 +179,15 @@ return {
             -- Only run if Neovim is launched with zero file arguments (just typing `nvim`)
             if vim.fn.argc(-1) == 0 then
               vim.schedule(function()
-                local resession = require("resession")
+                local resession = require "resession"
                 local cwd = vim.fn.getcwd()
 
                 -- Executes the exact underlying routine of Space + S + .
-                pcall(function()
-                  resession.load(cwd, { dir = "dirsession", silence_errors = true })
-                end)
+                pcall(function() resession.load(cwd, { dir = "dirsession", silence_errors = true }) end)
 
                 -- FIXED: Forces Neo-tree to render your terminal's current directory root folder.
                 -- Providing an explicit directory route overrides out-of-bounds workspace prompts.
-                vim.schedule(function()
-                  vim.cmd("Neotree show dir=" .. vim.fn.getcwd())
-                end)
+                vim.schedule(function() vim.cmd("Neotree show dir=" .. vim.fn.getcwd()) end)
               end)
             end
           end,
@@ -226,21 +219,19 @@ return {
           desc = "Add timestamp to backup and prune old copies",
           callback = function()
             -- 1. Set the new timestamped extension locally
-            vim.opt_local.backupext = "." .. os.date("%Y%m%d_%H%M%S")
+            vim.opt_local.backupext = "." .. os.date "%Y%m%d_%H%M%S"
 
             local max_backups = 2
 
             -- Safely retrieve and fully expand the home directory out of the option string
             local raw_dir = vim.o.backupdir
-            if not raw_dir or raw_dir == "" then
-              return
-            end
+            if not raw_dir or raw_dir == "" then return end
 
             -- Fully expand the path string so the system glob can read it natively
             local bdir = vim.fn.expand(raw_dir:gsub("//$", ""))
 
             -- Encode current file path as Neovim does (slash -> %)
-            local full_path = vim.fn.expand("%:p")
+            local full_path = vim.fn.expand "%:p"
             local encoded_name = full_path:gsub("/", "%%")
 
             -- 2. Find all existing backups for this specific encoded path
@@ -288,11 +279,11 @@ return {
         -- Enhanced Functions with your specific indentation
         ["<leader>vd"] = {
           function()
-            local current_file = vim.fn.expand("%:p")
+            local current_file = vim.fn.expand "%:p"
             if current_file ~= "" then
               vim.cmd("tabnew " .. current_file)
             else
-              vim.cmd("tabnew")
+              vim.cmd "tabnew"
             end
           end,
           desc = "Duplicate current tab",
@@ -301,7 +292,7 @@ return {
         ["<leader>vr"] = {
           function()
             local current_tab = vim.fn.tabpagenr()
-            local last_tab = vim.fn.tabpagenr("$")
+            local last_tab = vim.fn.tabpagenr "$"
 
             for i = last_tab, current_tab + 1, -1 do
               vim.cmd(i .. "tabclose")
@@ -315,7 +306,7 @@ return {
             local current_tab = vim.fn.tabpagenr()
 
             for i = current_tab - 1, 1, -1 do
-              vim.cmd("1tabclose")
+              vim.cmd "1tabclose"
             end
           end,
           desc = "Close tabs to the left",
@@ -324,9 +315,7 @@ return {
         ["<leader>vo"] = {
           function()
             vim.ui.input({ prompt = "File to open in new tab: ", completion = "file" }, function(input)
-              if input and input ~= "" then
-                vim.cmd("tabnew " .. input)
-              end
+              if input and input ~= "" then vim.cmd("tabnew " .. input) end
             end)
           end,
           desc = "Open file in new tab",
@@ -359,9 +348,7 @@ return {
         ["<C-Right>"] = { ":vertical resize +2<CR>", desc = "Increase window width" },
         -- Quick config editing: Point directly to astrocore.lua
         ["<Leader>rc"] = {
-          function()
-            vim.cmd("e " .. vim.fn.stdpath("config") .. "/lua/plugins/astrocore.lua")
-          end,
+          function() vim.cmd("e " .. vim.fn.stdpath "config" .. "/lua/plugins/astrocore.lua") end,
           desc = "Edit AstroCore config",
         },
         -- Reloading (Note: AstroNvim handles most reloads automatically on save)
@@ -372,25 +359,15 @@ return {
         ["<A-j>"] = { ":m .+1<CR>==", desc = "Move line down" },
         ["<A-k>"] = { ":m .-2<CR>==", desc = "Move line up" },
         -- navigate buffer tabs
-        ["]b"] = {
-          function()
-            require("astrocore.buffer").nav(vim.v.count1)
-          end,
-          desc = "Next buffer",
-        },
-        ["[b"] = {
-          function()
-            require("astrocore.buffer").nav(-vim.v.count1)
-          end,
-          desc = "Previous buffer",
-        },
+        ["]b"] = { function() require("astrocore.buffer").nav(vim.v.count1) end, desc = "Next buffer" },
+        ["[b"] = { function() require("astrocore.buffer").nav(-vim.v.count1) end, desc = "Previous buffer" },
 
         -- mappings seen under group name "Buffer"
         ["<Leader>bd"] = {
           function()
-            require("astroui.status.heirline").buffer_picker(function(bufnr)
-              require("astrocore.buffer").close(bufnr)
-            end)
+            require("astroui.status.heirline").buffer_picker(
+              function(bufnr) require("astrocore.buffer").close(bufnr) end
+            )
           end,
           desc = "Close buffer from tabline",
         },
@@ -398,11 +375,11 @@ return {
         -- Copy Full File-Path
         ["<Leader>P"] = {
           function()
-            local path = vim.fn.expand("%:p")
+            local path = vim.fn.expand "%:p"
             vim.fn.setreg("+", path)
             -- Using AstroNvim's notify system for a cleaner look
             if package.loaded["notify"] then
-              require("notify")("Copied path: " .. path, "info", { title = "Clipboard" })
+              require "notify"("Copied path: " .. path, "info", { title = "Clipboard" })
             else
               print("Copied path: " .. path)
             end
