@@ -37,4 +37,5 @@ return {
   { import = "astrocommunity.fuzzy-finder.fzf-lua" },
   { import = "astrocommunity.motion.flash-nvim" },
   { import = "astrocommunity.motion.mini-surround" },
+  { import = "astrocommunity.editing-support.todo-comments-nvim" },
 }

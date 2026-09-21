@@ -136,7 +136,7 @@ return {
         splitbelow = true,
         splitright = true,
       },
-      g = { -- vim.g.<key>
+      g = {
         -- configure global vim variables (vim.g)
         -- NOTE: `mapleader` and `maplocalleader` must be set in the AstroNvim opts or before `lazy.setup`
         -- This can be found in the `lua/lazy_setup.lua` file
@@ -386,7 +386,7 @@ return {
           end,
           desc = "Copy full file path",
         },
-      },
+      }, -- normal mode mappings end
 
       -- Visual mode mappings
       v = {
