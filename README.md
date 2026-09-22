@@ -212,13 +212,6 @@ Note that the **Leader** key is mapped to `<Space>`.
 | `<Leader>rc` | Normal | Target and edit your primary `astrocore.lua` system configuration mapping layout file instantly |
 | `<Leader>rl` | Normal | Force-execute a runtime evaluation to source and update your primary `init.lua` framework |
 
-### ⚙️ Core Configuration & Reload Operations
-
-| Keybinding | Mode | Description |
-| :--- | :--- | :--- |
-| `<Leader>rc` | Normal | Target and edit your primary `astrocore.lua` system configuration mapping layout file instantly [2] |
-| `<Leader>rl` | Normal | Force-execute a runtime evaluation to source and update your primary `init.lua` framework [2] |
-
 ## 🎓 Tutorials
 
 ### Neovim
