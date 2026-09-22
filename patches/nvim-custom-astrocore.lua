@@ -388,19 +388,18 @@ return {
         },
       }, -- normal mode mappings end
 
-      -- Visual mode mappings
       v = {
         -- Delete without yanking
         ["<Leader>d"] = { '"_d', desc = "Delete without yanking" },
 
         -- Move selection up/down
-        ["<A-j>"] = { ":m '>+1<CR>gv=gv", desc = "Move selection down" },
-        ["<A-k>"] = { ":m '<-2<CR>gv=gv", desc = "Move selection up" },
+        ["<C-Down>"] = { "<Esc>'<V'>dp`[V`]=gv", desc = "Move selection down" },
+        ["<C-Up>"] = { "<Esc>'<V'>dkP`[V`]=gv", desc = "Move selection up" },
 
         -- Better indenting in visual mode
         ["<"] = { "<gv", desc = "Indent left and reselect" },
         [">"] = { ">gv", desc = "Indent right and reselect" },
       },
-    },
-  },
+    }, -- end of mappings
+  }, -- end of opts
 }
