@@ -38,4 +38,5 @@ return {
   { import = "astrocommunity.motion.flash-nvim" },
   { import = "astrocommunity.motion.mini-surround" },
   { import = "astrocommunity.editing-support.todo-comments-nvim" },
+  { import = "astrocommunity.markdown-and-latex.render-markdown-nvim" },
 }
