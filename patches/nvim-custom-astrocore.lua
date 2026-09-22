@@ -305,7 +305,7 @@ return {
           function()
             local current_tab = vim.fn.tabpagenr()
 
-            for i = current_tab - 1, 1, -1 do
+            for _ = current_tab - 1, 1, -1 do
               vim.cmd "1tabclose"
             end
           end,
