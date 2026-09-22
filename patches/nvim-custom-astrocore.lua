@@ -250,7 +250,7 @@ return {
           end,
         },
       },
-    },
+    }, -- end of autocmds
 
     -- Mappings can be configured through AstroCore as well.
     -- NOTE: keycodes follow the casing in the vimdocs. For example, `<Leader>` must be capitalized
@@ -260,14 +260,18 @@ return {
         -- Tab Management
         ["<leader>v"] = { name = "Tabs/Views" },
 
+        -- Scroll through views with a single shift keypress
+        ["L"] = { [[:if tabpagenr("$") > 1 | tabnext | endif<CR>]], desc = "Next tab page" },
+        ["H"] = { [[:if tabpagenr("$") > 1 | tabprevious | endif<CR>]], desc = "Previous tab page" },
+
         -- Core Navigation
-        ["<leader>vn"] = { ":tabnew<CR>", desc = "New tab" },
+        -- ["<leader>vn"] = { ":silent Neotree show filesystem left<CR>", desc = "New tab with explorer" },
         ["<leader>vc"] = { ":tabclose<CR>", desc = "Close tab" },
 
         -- Tab moving
         ["<leader>vm"] = { ":tabmove<CR>", desc = "Move tab" },
-        ["<leader>v>"] = { ":tabmove +1<CR>", desc = "Move tab right" },
-        ["<leader>v<"] = { ":tabmove -1<CR>", desc = "Move tab left" },
+        ["<leader>v>"] = { [[:if tabpagenr("$") > 1 | tabmove +1 | endif<CR>]], desc = "Move tab right" },
+        ["<leader>v<"] = { [[:if tabpagenr("$") > 1 | tabmove -1 | endif<CR>]], desc = "Move tab left" },
 
         -- Direct Number Jump (1-5)
         ["<leader>v1"] = { "1gt", desc = "View Tab 1" },
@@ -276,7 +280,17 @@ return {
         ["<leader>v4"] = { "4gt", desc = "View Tab 4" },
         ["<leader>v5"] = { "5gt", desc = "View Tab 5" },
 
-        -- Enhanced Functions with your specific indentation
+        -- Creates a new tab and reloads neotree if available
+        ["<leader>vn"] = {
+          function()
+            vim.cmd "tabnew"
+            -- Checks if the :Neotree user command exists natively in the current session
+            if vim.fn.exists ":Neotree" == 2 then vim.cmd "silent Neotree show filesystem left" end
+          end,
+          desc = "New tab with explorer",
+        },
+
+        -- Duplicates tab and reloads neotree if available
         ["<leader>vd"] = {
           function()
             local current_file = vim.fn.expand "%:p"
@@ -285,8 +299,10 @@ return {
             else
               vim.cmd "tabnew"
             end
+            -- Checks if the :Neotree user command exists natively in the current session
+            if vim.fn.exists ":Neotree" == 2 then vim.cmd "silent Neotree show filesystem left" end
           end,
-          desc = "Duplicate current tab",
+          desc = "Duplicate tab with explorer",
         },
 
         ["<leader>vr"] = {
@@ -315,10 +331,14 @@ return {
         ["<leader>vo"] = {
           function()
             vim.ui.input({ prompt = "File to open in new tab: ", completion = "file" }, function(input)
-              if input and input ~= "" then vim.cmd("tabnew " .. input) end
+              if input and input ~= "" then
+                vim.cmd("tabnew " .. input)
+                -- 🚀 UNIFORM SIDEBAR: Automatically spawns file explorer if available
+                if vim.fn.exists ":Neotree" == 2 then vim.cmd "silent Neotree show filesystem left" end
+              end
             end)
           end,
-          desc = "Open file in new tab",
+          desc = "Open file in new tab with explorer",
         },
 
         -- Yank to EOL (consistent with D and C behavior)
@@ -335,17 +355,18 @@ return {
         ["<Leader>bn"] = { ":bnext<CR>", desc = "Next buffer" },
         ["<Leader>bp"] = { ":bprevious<CR>", desc = "Previous buffer" },
         -- Window navigation
-        ["<C-h>"] = { "<C-w>h", desc = "Move to left window" },
-        ["<C-j>"] = { "<C-w>j", desc = "Move to bottom window" },
-        ["<C-k>"] = { "<C-w>k", desc = "Move to top window" },
-        ["<C-l>"] = { "<C-w>l", desc = "Move to right window" },
+        ["<C-Left>"] = { "<C-w>h", desc = "Move to left window" },
+        ["<C-Down>"] = { "<C-w>j", desc = "Move to bottom window" },
+        ["<C-Up>"] = { "<C-w>k", desc = "Move to top window" },
+        ["<C-Right>"] = { "<C-w>l", desc = "Move to right window" },
         -- Splitting & Resizing
         ["<Leader>sv"] = { ":vsplit<CR>", desc = "Split window vertically" },
         ["<Leader>sh"] = { ":split<CR>", desc = "Split window horizontally" },
-        ["<C-Up>"] = { ":resize +2<CR>", desc = "Increase window height" },
-        ["<C-Down>"] = { ":resize -2<CR>", desc = "Decrease window height" },
-        ["<C-Left>"] = { ":vertical resize -2<CR>", desc = "Decrease window width" },
-        ["<C-Right>"] = { ":vertical resize +2<CR>", desc = "Increase window width" },
+        ["<S-Up>"] = { ":resize +2<CR>", desc = "Increase window height" },
+        ["<S-Down>"] = { ":resize -2<CR>", desc = "Decrease window height" },
+        ["<S-Left>"] = { ":vertical resize -2<CR>", desc = "Decrease window width" },
+        ["<S-Right>"] = { ":vertical resize +2<CR>", desc = "Increase window width" },
+
         -- Quick config editing: Point directly to astrocore.lua
         ["<Leader>rc"] = {
           function() vim.cmd("e " .. vim.fn.stdpath "config" .. "/lua/plugins/astrocore.lua") end,
@@ -393,8 +414,8 @@ return {
         ["<Leader>d"] = { '"_d', desc = "Delete without yanking" },
 
         -- Move selection up/down
-        ["<C-Down>"] = { "<Esc>'<V'>dp`[V`]=gv", desc = "Move selection down" },
-        ["<C-Up>"] = { "<Esc>'<V'>dkP`[V`]=gv", desc = "Move selection up" },
+        ["<S-Down>"] = { "<Esc>'<V'>dp`[V`]=gv", desc = "Move selection down" },
+        ["<S-Up>"] = { "<Esc>'<V'>dkP`[V`]=gv", desc = "Move selection up" },
 
         -- Better indenting in visual mode
         ["<"] = { "<gv", desc = "Indent left and reselect" },
