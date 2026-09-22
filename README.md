@@ -55,9 +55,9 @@ cd ~/dotfiles
 - **SSH Agent** - Automatic key management
 - **Path Management** - Smart PATH configuration
 
-### 📦 Package Management
-- **Homebrew** - Cross-platform package manager
+### 📦 Tools + IDE
 - **Automatic Installation** - 50+ essential tools and utilities
+- **NeoVim** - Preconfigured IDE - AI Enabled, Automatic Backups, Session Management and much more !
 
 ## 🏗️ Project Structure
 
@@ -134,7 +134,7 @@ If you prefer manual installation:
 - **Enhanced Viewing** - `bat` for syntax-highlighted file content (upgraded cat)
 - **Quick Documentation** - `tldr` (tealdeer) for simplified man pages with examples
 
-## ⌨️ Neovim Keybindings Configuration
+## ⌨️ Keybindings Configuration
 
 This section documents the custom keyboard shortcuts configured via `AstroCore`. 
 Note that the **Leader** key is mapped to `<Space>`.
@@ -143,67 +143,74 @@ Note that the **Leader** key is mapped to `<Space>`.
 
 | Keybinding | Mode | Description |
 | :--- | :--- | :--- |
-| `L` | Normal | Jump to the next tab page (if multiple tabs exist) [2] |
-| `H` | Normal | Jump to the previous tab page (if multiple tabs exist) [2] |
-| `<Leader>vn` | Normal | Open a completely new tab page pre-loaded with a Neo-tree file explorer sidebar [2] |
-| `<Leader>vc` | Normal | Close the currently focused tab page [2] |
-| `<Leader>vd` | Normal | Duplicate the active file layout into a fresh new tab layout with an explorer sidebar [2] |
-| `<Leader>vo` | Normal | Open a dynamic prompt to select and launch a file inside a new tab with an explorer sidebar [2] |
-| `<Leader>vr` | Normal | Force-close all open tab viewports situated to the right of your current tab index [2] |
-| `<Leader>vl` | Normal | Force-close all open tab viewports situated to the left of your current tab index [2] |
-| `<Leader>vm` | Normal | Reorder or move the current tab slot index location [2] |
-| `<Leader>v>` | Normal | Shift the active tab layout one position to the right [2] |
-| `<Leader>v<` | Normal | Shift the active tab layout one position to the left [2] |
-| `<Leader>v1` to `v5` | Normal | Directly teleport focus to Tab slots 1 through 5 instantly [2] |
+| `L` | Normal | Jump to the next tab page (if multiple tabs exist) |
+| `H` | Normal | Jump to the previous tab page (if multiple tabs exist) |
+| `<Leader>vn` | Normal | Open a completely new tab page pre-loaded with a Neo-tree file explorer sidebar |
+| `<Leader>vc` | Normal | Close the currently focused tab page |
+| `<Leader>vd` | Normal | Duplicate the active file layout into a fresh new tab layout with an explorer sidebar |
+| `<Leader>vo` | Normal | Open a dynamic prompt to select and launch a file inside a new tab with an explorer sidebar |
+| `<Leader>vr` | Normal | Force-close all open tab viewports situated to the right of your current tab index |
+| `<Leader>vl` | Normal | Force-close all open tab viewports situated to the left of your current tab index |
+| `<Leader>vm` | Normal | Reorder or move the current tab slot index location |
+| `<Leader>v>` | Normal | Shift the active tab layout one position to the right |
+| `<Leader>v<` | Normal | Shift the active tab layout one position to the left |
+| `<Leader>v1` to `v5` | Normal | Directly teleport focus to Tab slots 1 through 5 instantly |
 
 ### 🧭 Navigation & Screen Centering
 
 | Keybinding | Mode | Description |
 | :--- | :--- | :--- |
-| `n` | Normal | Jump to the next search match, keeping your cursor perfectly centered vertically on screen [2] |
-| `N` | Normal | Jump to the previous search match, keeping your cursor perfectly centered vertically on screen [2] |
-| `Ctrl + d` | Normal | Scroll half-page down and center the screen layout instantly [2] |
-| `Ctrl + u` | Normal | Scroll half-page up and center the screen layout instantly [2] |
-| `J` | Normal | Join the lower text line to your current line while safely preserving your exact cursor point [2] |
+| `n` | Normal | Jump to the next search match, keeping your cursor perfectly centered vertically on screen |
+| `N` | Normal | Jump to the previous search match, keeping your cursor perfectly centered vertically on screen |
+| `Ctrl + d` | Normal | Scroll half-page down and center the screen layout instantly |
+| `Ctrl + u` | Normal | Scroll half-page up and center the screen layout instantly |
+| `J` | Normal | Join the lower text line to your current line while safely preserving your exact cursor point |
 
 ### 📋 Editing, Indentation, & Clipboard Actions
 
 | Keybinding | Mode | Description |
 | :--- | :--- | :--- |
-| `Y` | Normal | Yank (copy) text starting from your cursor straight to the absolute end of the line (`y$`) [2] |
-| `<Leader>d` | Normal/Visual | Delete selected text block cleanly without over-writing your clipboard register (`"_d`) [2] |
-| `<` | Visual | Shift text indentation to the left and automatically keep the visual text block highlighted [2] |
-| `>` | Visual | Shift text indentation to the right and automatically keep the visual text block highlighted [2] |
-| `<Leader>P` | Normal | Extract the absolute, system-wide physical file path and copy it directly to your system clipboard [2] |
+| `Y` | Normal | Yank (copy) text starting from your cursor straight to the absolute end of the line (`y$`) |
+| `<Leader>d` | Normal/Visual | Delete selected text block cleanly without over-writing your clipboard register (`"_d`) |
+| `<` | Visual | Shift text indentation to the left and automatically keep the visual text block highlighted |
+| `>` | Visual | Shift text indentation to the right and automatically keep the visual text block highlighted |
+| `<Leader>P` | Normal | Extract the absolute, system-wide physical file path and copy it directly to your system clipboard |
 
 ### 🔀 Line & Selection Movement
 
 | Keybinding | Mode | Description |
 | :--- | :--- | :--- |
-| `Alt + j` | Normal | Move the current line one row down and instantly re-align indentation rules [2] |
-| `Alt + k` | Normal | Move the current line one row up and instantly re-align indentation rules [2] |
-| `Shift + Down` | Visual | Bubble the entire highlighted visual block selection one row downwards smoothly [2] |
-| `Shift + Up` | Visual | Bubble the entire highlighted visual block selection one row upwards smoothly [2] |
+| `Alt + j` | Normal | Move the current line one row down and instantly re-align indentation rules |
+| `Alt + k` | Normal | Move the current line one row up and instantly re-align indentation rules |
+| `Shift + Down` | Visual | Bubble the entire highlighted visual block selection one row downwards smoothly |
+| `Shift + Up` | Visual | Bubble the entire highlighted visual block selection one row upwards smoothly |
 
 ### 🗂️ Buffer & Window Management
 
 | Keybinding | Mode | Description |
 | :--- | :--- | :--- |
-| `<Leader>bn` | Normal | Cycle focus to the next open background file buffer [2] |
-| `<Leader>bp` | Normal | Cycle focus to the previous open background file buffer [2] |
-| `]b` | Normal | Jump to the next buffer tab based on execution count counts [2] |
-| `[b` | Normal | Jump to the previous buffer tab based on execution count counts [2] |
-| `<Leader>bd` | Normal | Prompt an interactive Heirline picker tab to quickly close selected open buffers [2] |
-| `Ctrl + Left` | Normal | Shift window workspace focus one pane layout to the left [2] |
-| `Ctrl + Down` | Normal | Shift window workspace focus one pane layout downwards [2] |
-| `Ctrl + Up` | Normal | Shift window workspace focus one pane layout upwards [2] |
-| `Ctrl + Right` | Normal | Shift window workspace focus one pane layout to the right [2] |
-| `<Leader>sv` | Normal | Slice your active code file viewport into a fresh Vertical split window [2] |
-| `<Leader>sh` | Normal | Slice your active code file viewport into a fresh Horizontal split window [2] |
-| `Shift + Up` | Normal | Expand the vertical panel boundary block height of the current split window (+2) [2] |
-| `Shift + Down` | Normal | Shrink the vertical panel boundary block height of the current split window (-2) [2] |
-| `Shift + Left` | Normal | Shrink the horizontal panel boundary block width of the current split window (-2) [2] |
-| `Shift + Right` | Normal | Expand the horizontal panel boundary block width of the current split window (+2) [2] |
+| `<Leader>bn` | Normal | Cycle focus to the next open background file buffer |
+| `<Leader>bp` | Normal | Cycle focus to the previous open background file buffer |
+| `]b` | Normal | Jump to the next buffer tab based on execution count counts |
+| `[b` | Normal | Jump to the previous buffer tab based on execution count counts |
+| `<Leader>bd` | Normal | Prompt an interactive Heirline picker tab to quickly close selected open buffers |
+| `Ctrl + Left` | Normal | Shift window workspace focus one pane layout to the left |
+| `Ctrl + Down` | Normal | Shift window workspace focus one pane layout downwards |
+| `Ctrl + Up` | Normal | Shift window workspace focus one pane layout upwards |
+| `Ctrl + Right` | Normal | Shift window workspace focus one pane layout to the right |
+| `<Leader>sv` | Normal | Slice your active code file viewport into a fresh Vertical split window |
+| `<Leader>sh` | Normal | Slice your active code file viewport into a fresh Horizontal split window |
+| `Shift + Up` | Normal | Expand the vertical panel boundary block height of the current split window (+2) |
+| `Shift + Down` | Normal | Shrink the vertical panel boundary block height of the current split window (-2) |
+| `Shift + Left` | Normal | Shrink the horizontal panel boundary block width of the current split window (-2) |
+| `Shift + Right` | Normal | Expand the horizontal panel boundary block width of the current split window (+2) |
+
+### ⚙️ Core Configuration & Reload Operations
+
+| Keybinding | Mode | Description |
+| :--- | :--- | :--- |
+| `<Leader>rc` | Normal | Target and edit your primary `astrocore.lua` system configuration mapping layout file instantly |
+| `<Leader>rl` | Normal | Force-execute a runtime evaluation to source and update your primary `init.lua` framework |
 
 ### ⚙️ Core Configuration & Reload Operations
 
