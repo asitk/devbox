@@ -20,6 +20,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 	echo -e "\033[33m"
 	echo "┌────────────────────────────────────────────────────────────────────────┐"
 	echo "│  ⚠  NOTICE: macOS environment has not been completely tested!          │"
+	echo "│             Please expect some quirks, however almost all tools        │"
+	echo "│             should work.                                               │"
 	echo "│                                                                        │"
 	echo "│  The default stock Apple Terminal.app DOES NOT correctly render the    │"
 	echo "│  advanced Nerd Font glyphs, multi-cell icons, or True Color strings    │"
@@ -27,10 +29,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 	echo "│                                                                        │"
 	echo "│  To prevent layout bugs, please use one of these emulators instead:    │"
 	echo "│  • Ghostty                                                             │"
-	echo "│  • iTerm2  (Will be installed)                                         │"
+	echo "│  • iTerm2  (Will be installed if unavailable)                          │"
 	echo "│  • WezTerm                                                             │"
 	echo "│                                                                        │"
-	echo "│  CRITICAL: You MUST manually open your chosen terminal's Preferences   │"
+	echo "│  IMPORTANT: You MUST manually open your chosen terminal's Preferences  │"
 	echo "│  and explicitly bind your font family framework option directly to:    │"
 	echo "│  \"JetBrainsMono Nerd Font Mono\"                                       │"
 	echo "└────────────────────────────────────────────────────────────────────────┘"
@@ -93,13 +95,13 @@ brew_install_quiet() {
 
 # Update Homebrew and clean up old versions
 echo -e "\033[32m✓\033[0m Updating Homebrew ..."
-brew update || {
+brew update --quiet || {
 	echo -e "\033[31m✗\033[0m Failed to update Homebrew"
 	exit 1
 }
 
 echo -e "\033[32m✓\033[0m Cleaning up old Homebrew versions ..."
-brew cleanup || {
+brew cleanup --quiet &>/dev/null || {
 	echo -e "\033[33m⚠\033[0m Failed to cleanup Homebrew (continuing)"
 }
 
@@ -114,7 +116,7 @@ brew_install_quiet \
 # Platform-specific modern terminal installation for macOS
 if [[ "$OSTYPE" == "darwin"* ]]; then
 	echo -e "\033[32m✓\033[0m macOS detected. Installing modern developer terminal emulator iTerm2 ..."
-	brew install --cask iterm2 || {
+	brew install --quiet --cask iterm2 || {
 		echo -e "\033[33m⚠\033[0m Failed to install GUI terminal casks (continuing)"
 	}
 fi
@@ -314,7 +316,7 @@ if command -v trash &>/dev/null; then
 	fi
 
 	# ==============================================================================
-	# BASH PROFILE MAC INTEGRATION BRIDGE
+	# BASH PROFILE INTEGRATION (macOS)
 	# ==============================================================================
 	if [[ "$OSTYPE" == "darwin"* ]]; then
 		BASH_PROF="$HOME/.bash_profile"
@@ -323,29 +325,46 @@ if command -v trash &>/dev/null; then
 		if [ -f "$BASH_PROF" ]; then
 			if ! grep -q "source.*\.bashrc" "$BASH_PROF" && ! grep -q "\.\s.*\.bashrc" "$BASH_PROF"; then
 				# SAFE HIGH-PERMISSION APPEND: Pipes the command securely into the file via sudo tee
-				echo -e "\n# Devbox: Dynamic login bridge initialization\n$SOURCE_CMD" | sudo tee -a "$BASH_PROF" > /dev/null
+				echo -e "\n# Login initialization\n$SOURCE_CMD" | sudo tee -a "$BASH_PROF" >/dev/null
 				echo -e "\033[32m✓\033[0m Appended .bashrc loader hook to existing .bash_profile"
 			else
 				echo -e "\033[32m✓\033[0m Existing .bashrc loader hook verified inside .bash_profile"
 			fi
 		else
 			# SAFE HIGH-PERMISSION CREATE: Creates a fresh file safely via sudo tee
-			echo -e "# Devbox: Dynamic login bridge initialization\n$SOURCE_CMD" | sudo tee "$BASH_PROF" > /dev/null
+			echo -e "# Login initialization\n$SOURCE_CMD" | sudo tee "$BASH_PROF" >/dev/null
 			echo -e "\033[32m✓\033[0m Created a clean .bash_profile loader hook"
 		fi
 	fi
 	# ==============================================================================
 
-	# Activate
-  source "$HOME/devbox/bashrc/.bashrc"
-
+	# ==============================================================================
+	# FINAL STATUS UPDATE & REFRESH INSTRUCTIONS (CROSS-PLATFORM GENERIC)
+	# ==============================================================================
 	echo ""
 	echo -e "\033[32m✓\033[0m Setup complete! :)"
 	echo ""
-	echo "------------------------------------------------------------------"
-	echo -e "To apply all environmental changes to this active window, run:\n   \033[36msource ~/.bashrc\033[0m"
-	echo "Or simply open a brand new tab/window pane inside iTerm2! if on MacOS"
-	echo "------------------------------------------------------------------"
+	echo "┌────────────────────────────────────────────────────────────────────────┐"
+	echo "│  ★  NEXT STEPS TO FINALIZE YOUR DEVBOX WORKSPACE                       │"
+	echo "│                                                                        │"
+	echo "│  1. REQUIRED TERMINAL EMULATOR CAPABILITIES:                           │"
+	echo "│     Your active terminal wrapper MUST support the following features:  │"
+	echo "│     • True Color (24-bit RGB) for advanced theme/Neovim shading        │"
+	echo "│     • Extended Unicode Glyph rendering for developer icons             │"
+	echo "│     • Monospace constraints to prevent layout/character alignment bugs │"
+	echo "│     • Ex: Ghostty, WezTerm, iTerm2 (macOS), Ptyxix, Gnome T or Tilix   │"
+	echo "│                                                                        │"
+	echo "│  2. IMPORTANT FONT CONFIGURATION:                                      │"
+	echo "│     Open your terminal profile settings and explicitly change your     │"
+	echo "│     text font family selection family directly to:                     │"
+	echo "│     \"JetBrainsMono Nerd Font Mono\"                                   │"
+	echo "│                                                                        │"
+	echo "│  3. REFRESH ACTIVE PANEL STATE:                                        │"
+	echo "│     To apply changes to this session instantly, manually execute:      │"
+	echo "│     source ~/.bashrc                                                   │"
+	echo "└────────────────────────────────────────────────────────────────────────┘"
+	echo ""
+# ==============================================================================
 else
 	echo -e "\033[33m⚠\033[0m trash command not found. Skipping stow operations. Bailing"
 fi

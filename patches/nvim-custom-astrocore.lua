@@ -152,6 +152,26 @@ return {
           callback = function() vim.highlight.on_yank() end,
         },
       },
+
+      -- Automatically open Neotree on startup
+      auto_open_neotree = {
+        {
+          event = "User",
+          pattern = "AstroFile", -- Fires safely the microsecond your workspace finishes drafting
+          desc = "Launch Neotree sidebar automatically on startup",
+          callback = function()
+            -- Only fire if you launch Neovim clean without pre-specifying a file target
+            -- (e.g., just typing `nvim` instead of `nvim main.py`)
+            if vim.fn.argc(-1) == 0 then
+              vim.schedule(function()
+                -- Wakes up the command loop safely
+                if vim.fn.exists ":Neotree" == 2 then vim.cmd "silent Neotree show filesystem left" end
+              end)
+            end
+          end,
+        },
+      },
+
       -- Automatically handle the manual save sequence right before Neovim exits
       auto_save_dirsession = {
         {

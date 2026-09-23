@@ -91,10 +91,6 @@ fi
 
 export PATH
 
-# Uncomment the following line if you don't like \
-# systemctl's auto-paging feature:
-# export SYSTEMD_PAGER=
-
 # User specific aliases and functions
 if [ -d ~/.bashrc.d ]; then
 	for rc in ~/.bashrc.d/*; do
@@ -113,6 +109,7 @@ fi
 
 # Disable the bell
 if [[ $- == *i* ]]; then bind "set bell-style visible"; fi
+
 #######################################################
 # EXPORTS
 #######################################################
@@ -477,54 +474,43 @@ if command -v fzf >/dev/null 2>&1; then
 fi
 
 if command -v fzf >/dev/null 2>&1; then
-	case "$OS_TYPE" in
-	Darwin*) CLIP_CMD="pbcopy" ;;
-	Linux*) CLIP_CMD="xclip -selection clipboard" ;;
-	*) CLIP_CMD="cat" ;;
-	esac
-
-	# 1. Upgrade the search engine to use 'fd' or 'ripgrep' if available
 	if command -v fd &>/dev/null; then
 		export FZF_CTRL_T_COMMAND="fd --type f --strip-cwd-prefix --hidden --follow --exclude .git"
 	elif command -v rg &>/dev/null; then
 		export FZF_CTRL_T_COMMAND="rg --files --hidden --follow --glob '!/.git/*'"
 	fi
 
-	# 2. Conditional Layout (Uses rich previews only if tools exist, with clean fallbacks)
 	if command -v bat &>/dev/null && command -v eza &>/dev/null; then
-		# Ultimate Programmer Setup (Both bat and eza are installed)
 		export FZF_CTRL_T_OPTS="
 			--height 80% --layout reverse --border
 			--prompt '🔍 Files > '
 			--header '💡 [Ctrl-/] Toggle Preview | [Ctrl-Y] Copy Path'
 			--preview 'if [ -d {} ]; then eza --tree --level=2 --icons --color=always {} 2>/dev/null; else bat --style=numbers --color=always --line-range :500 {} 2>/dev/null; fi'
-			--preview-window 'right:55%:hidden:wrap'
+			--preview-window 'right:55%:wrap'
 			--bind 'ctrl-/:toggle-preview'
-			--bind 'ctrl-y:execute-silent(echo -n {} | $CLIP_CMD)+abort'
+			--bind 'ctrl-y:execute-silent(echo -n {} | (pbcopy 2>/dev/null || xclip -selection clipboard))+abort'
 		"
 	else
-		# Universal Fallback Setup (Safe for any standard Linux/macOS machine)
 		export FZF_CTRL_T_OPTS="
 			--height 80% --layout reverse --border
 			--prompt '🔍 Files > '
 			--header '💡 [Ctrl-/] Toggle Preview | [Ctrl-Y] Copy Path'
 			--preview 'if [ -d {} ]; then tree -C -L 2 {} 2>/dev/null || ls -F {}; else cat {} 2>/dev/null; fi'
-			--preview-window 'right:55%:hidden:wrap'
+			--preview-window 'right:55%:wrap'
 			--bind 'ctrl-/:toggle-preview'
-			--bind 'ctrl-y:execute-silent(echo -n {} | $CLIP_CMD)+abort'
+			--bind 'ctrl-y:execute-silent(echo -n {} | (pbcopy 2>/dev/null || xclip -selection clipboard))+abort'
 		"
 	fi
 
-	# 3. Existing History Search Options (Preserved exactly as you had it)
 	export FZF_CTRL_R_OPTS="
-			--preview 'echo {}' --preview-window down:3:hidden:wrap
-      --bind 'ctrl-/:toggle-preview'
-      --bind 'ctrl-y:execute-silent(echo -n {2..} | $CLIP_CMD)+abort'
-      --color 'header:italic:underline'
-      --header 'Press CTRL-Y to copy command, CTRL-/ to toggle preview'"
+		--preview 'echo {} | sed -E \"s/^[ ]*[0-9]+[ ]*//\"' --preview-window down:3:hidden:wrap
+		--bind 'ctrl-/:toggle-preview'
+		--bind 'ctrl-y:execute-silent(echo -n {} | sed -E \"s/^[ ]*[0-9]+[ ]*//\" | (pbcopy 2>/dev/null || xclip -selection clipboard))+abort'
+		--color 'header:italic:underline'
+		--header 'Press CTRL-Y to copy command, CTRL-/ to toggle preview'"
 
 	# ========================================================
-	# 🔍 Global FZF Custom Tab-Completion Engine (All Commands)
+	# 🔍 Global FZF Custom Tab-Completion Engine (All Commands) [3]
 	# ========================================================
 	_fzf_comprun() {
 		local command=$1
@@ -532,7 +518,6 @@ if command -v fzf >/dev/null 2>&1; then
 
 		case "$command" in
 		export | unset)
-			# 🔐 Environment Variables: Displays internal value readouts
 			# shellcheck disable=SC2016
 			fzf "$@" \
 				--prompt "🔐 Variables > " \
@@ -540,38 +525,34 @@ if command -v fzf >/dev/null 2>&1; then
 				--preview-window 'right:50%:wrap'
 			;;
 		cd)
-			# 📂 Directory Changer: Shows folder structures using eza or tree
 			fzf "$@" \
 				--prompt "📂 Change Dir > " \
 				--preview 'if command -v eza &>/dev/null; then eza --tree --level=2 --icons --color=always {} 2>/dev/null; else tree -C -L 2 {} 2>/dev/null || ls -F {}; fi' \
 				--preview-window 'right:50%:wrap'
 			;;
 		kill)
-			# ⚡ Process Killer: Shows rich CPU/Memory details of the target application PID
+			# FIXED: Uses BSD-safe process formatting rules to fully prevent macOS kill-menu panics [3]
 			# shellcheck disable=SC2016
 			fzf "$@" \
 				--prompt "⚡ Kill Process > " \
-				--preview 'if [[ "$OS_TYPE" == "Darwin" ]]; then ps -p {} -o comm,pcpu,pmem; else ps -fp {} 2>/dev/null || ps -p {} -o comm,pcpu,pmem; fi' \
+				--preview 'ps -p {} -o comm,pcpu,pmem 2>/dev/null || ps -fp {} 2>/dev/null' \
 				--preview-window 'bottom:3:wrap'
 			;;
 		ssh)
-			# 🌐 Remote SSH Connection: Previews host connection configurations
 			fzf "$@" \
 				--prompt "🌐 SSH Hosts > " \
 				--preview 'grep -A 5 "Host {}" ~/.ssh/config 2>/dev/null || echo "No custom SSH config entry found for {}"' \
 				--preview-window 'right:50%:wrap'
 			;;
 		*)
-			# 📄 Universal Fallback: (e.g., cat **, nvim **) Previews file contents using bat or cat
 			fzf "$@" \
 				--prompt "📄 Files > " \
 				--preview 'if [ -d {} ]; then eza --tree --level=2 --icons --color=always {} 2>/dev/null || tree -C -L 2 {}; else bat --style=numbers --color=always --line-range :200 {} 2>/dev/null || cat {}; fi' \
-				--preview-window 'right:55%:hidden:wrap' \
+				--preview-window 'right:55%:wrap' \
 				--bind 'ctrl-/:toggle-preview'
 			;;
 		esac
 	}
-
 fi
 
 # Linked cleanly beneath the zoxide runtime loader setup
