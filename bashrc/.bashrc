@@ -509,9 +509,9 @@ if command -v fzf >/dev/null 2>&1; then
 		--color 'header:italic:underline'
 		--header 'Press CTRL-Y to copy command, CTRL-/ to toggle preview'"
 
-	# ========================================================
-	# 🔍 Global FZF Custom Tab-Completion Engine (All Commands) [3]
-	# ========================================================
+	# ===========================================
+	# 🔍 Global FZF Custom Tab-Completion Engine
+	# ===========================================
 	_fzf_comprun() {
 		local command=$1
 		shift
