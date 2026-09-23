@@ -1,6 +1,6 @@
 # DevBox: Portable Dev Environment
 
-A set of curated tools and scripts that play together :)
+An customizable IDE with a set of curated tools that work seamlessly :)
 
 ![DevBox Screenshot](docs/screenshot.png)
 
@@ -45,8 +45,8 @@ cd ~/dotfiles
 ## 📋 What's Included
 
 ### 🛠️ Development Tools
-- **Neovim** - AstroVim with AI-powered coding assistance (OpenCode plugin)
-- **Git** - Enhanced with Delta for beautiful diffs and smart aliases
+- **Neovim** - AstroVim with AI-powered coding assistance
+- **Enhanced Git** - Delta for beautiful diffs and smart aliases
 - **Tmux** - Terminal multiplexer with custom keybindings
 - **Starship** - Minimal, fast, and customizable prompt
 
