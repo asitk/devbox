@@ -3,13 +3,18 @@
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
+# Silence Apple's default shell deprecation warning natively on macOS environments
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	export BASH_SILENCE_DEPRECATION_WARNING=1
+fi
+
 # Source global definitions
 if [ -f /etc/bashrc ]; then
 	# shellcheck disable=SC1091
 	. /etc/bashrc
 fi
 
-# Detect Operating System 
+# Detect Operating System
 OS_TYPE="$(uname)"
 
 # User specific environment

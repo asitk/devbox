@@ -13,6 +13,44 @@ if [[ "$OSTYPE" != "linux-gnu"* && "$OSTYPE" != "darwin"* ]]; then
 	exit 1
 fi
 
+# ==============================================================================
+# ⚠ WARNING & COMPATIBILITY NOTICE (macOS ONLY)
+# ==============================================================================
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	echo -e "\033[33m"
+	echo "┌────────────────────────────────────────────────────────────────────────┐"
+	echo "│  ⚠  NOTICE: macOS environment has not been completely tested!          │"
+	echo "│                                                                        │"
+	echo "│  The default stock Apple Terminal.app DOES NOT correctly render the    │"
+	echo "│  advanced Nerd Font glyphs, multi-cell icons, or True Color strings    │"
+	echo "│  deployed by this devbox installation.                                 │"
+	echo "│                                                                        │"
+	echo "│  To prevent layout bugs, please use one of these emulators instead:    │"
+	echo "│  • Ghostty                                                             │"
+	echo "│  • iTerm2  (Will be installed)                                         │"
+	echo "│  • WezTerm                                                             │"
+	echo "│                                                                        │"
+	echo "│  CRITICAL: You MUST manually open your chosen terminal's Preferences   │"
+	echo "│  and explicitly bind your font family framework option directly to:    │"
+	echo "│  \"JetBrainsMono Nerd Font Mono\"                                       │"
+	echo "└────────────────────────────────────────────────────────────────────────┘"
+	echo -e "\033[0m"
+
+	# Read exactly one character instantly
+	echo -n "Do you want to proceed? (y/N): "
+	read -r -n 1 response
+	echo "" # Move to a clean newline after instant character capture
+
+	# Validate choice (Aborts on blank/Enter, 'n', or any unexpected character keys)
+	if [[ "$response" != "y" && "$response" != "Y" ]]; then
+		echo -e "\033[31m✗ Setup aborted. Please switch to a compatible terminal and re-run.\033[0m"
+		exit 1
+	fi
+
+	echo -e "\033[32m✓ Proceeding with installation...\033[0m\n"
+fi
+# ==============================================================================
+
 # Check if Homebrew is installed
 if ! command -v brew &>/dev/null; then
 	echo -e "\033[32m✓\033[0m Installing Homebrew ..."
@@ -21,6 +59,15 @@ if ! command -v brew &>/dev/null; then
 		echo -e "\033[31m✗\033[0m Failed to install Homebrew"
 		exit 1
 	}
+fi
+
+# Load Homebrew into the current shell environment
+if [ -f "/opt/homebrew/bin/brew" ]; then
+	eval "$(/opt/homebrew/bin/brew shellenv)" # Apple Silicon Mac
+elif [ -f "/usr/local/bin/brew" ]; then
+	eval "$(/usr/local/bin/brew shellenv)" # Intel Mac
+elif [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" # Linux / WSL
 fi
 
 # Helper function to install brew packages without warnings
@@ -63,6 +110,14 @@ brew_install_quiet \
 	git-delta eza ripgrep shfmt tealdeer multitail tree bottom zoxide \
 	trash-cli fzf fd curl bat nvim tmux tpm xclip gcc make cmake gh \
 	go php ruby composer perl julia imagemagick tectonic node starship
+
+# Platform-specific modern terminal installation for macOS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	echo -e "\033[32m✓\033[0m macOS detected. Installing modern developer terminal emulator iTerm2 ..."
+	brew install --cask iterm2 || {
+		echo -e "\033[33m⚠\033[0m Failed to install GUI terminal casks (continuing)"
+	}
+fi
 
 # Install fonts
 echo -e "\033[32m✓\033[0m Installing fonts ..."
@@ -133,15 +188,21 @@ tldr --update
 #       $HOME/.local/share/Trash/ or ~/.Trash (macOS) before stowing
 if command -v trash &>/dev/null; then
 	echo -e "\033[32m✓\033[0m Moving older configs and setting up devbox ..."
-	trash ~/.config/git
+
+	# Safely trash files only if they exist to prevent script failure
+	[ -e ~/.config/git ] && trash ~/.config/git
 	stow -R "git"
-	trash ~/.config/nvim
+
+	[ -e ~/.config/nvim ] && trash ~/.config/nvim
 	stow -R "nvim"
-	trash ~/.config/starship.toml
+
+	[ -e ~/.config/starship.toml ] && trash ~/.config/starship.toml
 	stow -R "starship"
-	trash ~/.config/tmux
+
+	[ -e ~/.config/tmux ] && trash ~/.config/tmux
 	stow -R "tmux"
-	trash ~/.bashrc
+
+	[ -e ~/.bashrc ] && trash ~/.bashrc
 	stow -R "bashrc"
 
 	# Copy custom nvim configuration files
@@ -238,12 +299,53 @@ if command -v trash &>/dev/null; then
 	# 3. Update/Install Mason Packages and AstroNvim core
 	nvim --headless "+AstroUpdate" +qa &>/dev/null
 
+	# Change default login shell to Bash on macOS if it isn't already active
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		current_shell=$(dscl . -read "$HOME" UserShell | awk '{print $2}')
+		if [[ "$current_shell" != "/bin/bash" ]]; then
+			echo -e "\033[32m✓\033[0m Changing your default shell to Bash..."
+			echo "Please enter your password when prompted by system permissions:"
+			chsh -s /bin/bash || {
+				echo -e "\033[31m✗\033[0m Failed to change default shell to Bash"
+			}
+		else
+			echo -e "\033[32m✓\033[0m Default shell is already set to Bash"
+		fi
+	fi
+
+	# ==============================================================================
+	# BASH PROFILE MAC INTEGRATION BRIDGE
+	# ==============================================================================
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		BASH_PROF="$HOME/.bash_profile"
+		SOURCE_CMD="if [ -f ~/.bashrc ]; then source ~/.bashrc; fi"
+
+		if [ -f "$BASH_PROF" ]; then
+			if ! grep -q "source.*\.bashrc" "$BASH_PROF" && ! grep -q "\.\s.*\.bashrc" "$BASH_PROF"; then
+				# SAFE HIGH-PERMISSION APPEND: Pipes the command securely into the file via sudo tee
+				echo -e "\n# Devbox: Dynamic login bridge initialization\n$SOURCE_CMD" | sudo tee -a "$BASH_PROF" > /dev/null
+				echo -e "\033[32m✓\033[0m Appended .bashrc loader hook to existing .bash_profile"
+			else
+				echo -e "\033[32m✓\033[0m Existing .bashrc loader hook verified inside .bash_profile"
+			fi
+		else
+			# SAFE HIGH-PERMISSION CREATE: Creates a fresh file safely via sudo tee
+			echo -e "# Devbox: Dynamic login bridge initialization\n$SOURCE_CMD" | sudo tee "$BASH_PROF" > /dev/null
+			echo -e "\033[32m✓\033[0m Created a clean .bash_profile loader hook"
+		fi
+	fi
+	# ==============================================================================
+
+	# Activate
+  source "$HOME/devbox/bashrc/.bashrc"
+
+	echo ""
+	echo -e "\033[32m✓\033[0m Setup complete! :)"
+	echo ""
+	echo "------------------------------------------------------------------"
+	echo -e "To apply all environmental changes to this active window, run:\n   \033[36msource ~/.bashrc\033[0m"
+	echo "Or simply open a brand new tab/window pane inside iTerm2! if on MacOS"
+	echo "------------------------------------------------------------------"
 else
-	echo -e "\033[33m⚠\033[0m trash command not found. Skipping stow operations"
+	echo -e "\033[33m⚠\033[0m trash command not found. Skipping stow operations. Bailing"
 fi
-
-# Activate
-source "$HOME/.bashrc"
-
-echo ""
-echo -e "\033[32m✓\033[0m Setup complete! :)"
