@@ -1,6 +1,6 @@
 # DevBox: Portable Dev Environment
 
-Curated Tools + Preconfigured IDE that work seamlessly 
+Curated Tools + Preconfigured IDE that work seamlessly together 
 
 ![DevBox Screenshot](docs/screenshot.png)
 
