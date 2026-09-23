@@ -1,6 +1,6 @@
 # DevBox: Portable Dev Environment
 
-An customizable IDE with a set of curated tools that work seamlessly :)
+IDE + curated tools that work together seamlessly :)
 
 ![DevBox Screenshot](docs/screenshot.png)
 
