@@ -8,15 +8,19 @@ Curated Tools + Preconfigured IDE that work seamlessly together
 
 Before starting, ensure you have the following installed:
 
+- Linux (Ubuntu, Fedora, Arch, openSUSE, RHEL) or macOS
+- Internet connection for package installation
 - **Homebrew** - Cross-platform package manager
 - **Git** - Version control system
-- **Modern Terminal** - A modern terminal supporting:True Color (24-bit RGB): 
-  Required for accurate theme syntax highlighting and Neovim (nvim) color rendering.
-  Extended Unicode Glyphs: Full patch mapping support for developer Nerd Fonts icon 
-  assets.Strict Monospace 
-  Grid: Rigid width box constraints to prevent layout alignment overlaps.
+- **Modern Terminal** - A terminal supporting :- 
+  (1) True Color (24-bit RGB): Required for accurate theme syntax highlighting 
+      and Neovim color rendering
+  (2) Extended Unicode Glyphs: Full patch mapping support for developer Nerd Fonts icon 
+      assets
+  (3) Strict Monospace Grid: Rigid width box constraints to prevent layout 
+      alignment overlaps
+  
   Examples: Ptyxis, Ghostty, WezTerm, or iTerm2 (macOS).
-
 
 ### Installing Prerequisites
 
@@ -83,12 +87,6 @@ devbox/
 ```
 
 ## ⚙️ Installation
-
-### Prerequisites
-- Linux (Ubuntu, Fedora, Arch, openSUSE, RHEL) or macOS
-- Internet connection for package installation
-- Git
-- Modern Terminal with 24bit RGB + Extended Unicode Glyphs (See above)
 
 ### Setup
 The `setup.sh` script handles everything:
