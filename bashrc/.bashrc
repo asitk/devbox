@@ -130,6 +130,8 @@ shopt -s checkwinsize
 # Causes bash to append to history instead of overwriting it so if you \
 # start a new terminal, you have old session history
 shopt -s histappend
+
+# shellcheck disable=SC2178
 PROMPT_COMMAND='history -a'
 
 # set up XDG folders
@@ -558,7 +560,7 @@ fi
 # Linked cleanly beneath the zoxide runtime loader setup
 alias zi='cdi'
 
-# Load custom terminal configurations if the file exists
+# Load custom configurations if existing
 if [ -f ~/.bash_custom ]; then
 	# shellcheck disable=SC1090
 	. ~/.bash_custom

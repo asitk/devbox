@@ -8,10 +8,23 @@ Curated Tools + Preconfigured IDE that work seamlessly together
 
 Before starting, ensure you have the following installed:
 
-- **Git** - Version control system
 - **Homebrew** - Cross-platform package manager
+- **Git** - Version control system
+- **Modern Terminal** - A modern terminal supporting:True Color (24-bit RGB): 
+  Required for accurate theme syntax highlighting and Neovim (nvim) color rendering.
+  Extended Unicode Glyphs: Full patch mapping support for developer Nerd Fonts icon 
+  assets.Strict Monospace 
+  Grid: Rigid width box constraints to prevent layout alignment overlaps.
+  Examples: Ptyxis, Ghostty, WezTerm, or iTerm2 (macOS).
+
 
 ### Installing Prerequisites
+
+**Homebrew:**
+```bash
+# Install Homebrew and register env (works on Linux and macOS)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
 
 **Git:**
 ```bash
@@ -25,18 +38,12 @@ sudo dnf install git
 brew install git
 ```
 
-**Homebrew:**
-```bash
-# Install Homebrew (works on Linux and macOS)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
 ## 🚀 Quick Start
 
 ```bash
 # Clone the repository
-git clone <repository-url> ~/dotfiles
-cd ~/dotfiles
+git clone <repository-url> ~/devbox
+cd ~/devbox
 
 # Run the setup script
 ./setup.sh
@@ -62,7 +69,7 @@ cd ~/dotfiles
 ## 🏗️ Project Structure
 
 ```
-dotfiles/
+devbox/
 ├── setup.sh                   # Main installation script
 ├── patches/                   # Custom nvim patches
 ├── bashrc/.bashrc
@@ -80,9 +87,10 @@ dotfiles/
 ### Prerequisites
 - Linux (Ubuntu, Fedora, Arch, openSUSE, RHEL) or macOS
 - Internet connection for package installation
-- Git and Homebrew (see prerequisites section above)
+- Git
+- Modern Terminal with 24bit RGB + Extended Unicode Glyphs (See above)
 
-### Automated Setup
+### Setup
 The `setup.sh` script handles everything:
 
 1. **OS Detection** - Verifies Linux/macOS compatibility
@@ -95,11 +103,8 @@ The `setup.sh` script handles everything:
 4. **Configuration Stowing** - Uses GNU Stow to symlink dotfiles
 5. **Neovim Setup** - Runs headless installation for plugin setup
 
-### Manual Setup
-If you prefer manual installation:
-
 ```bash
-# Run the setup script directly
+# Run the setup script directly from the working dir
 ./setup.sh
 ```
 
@@ -134,7 +139,7 @@ If you prefer manual installation:
 - **Enhanced Viewing** - `bat` for syntax-highlighted file content (upgraded cat)
 - **Quick Documentation** - `tldr` (tealdeer) for simplified man pages with examples
 
-## ⌨️ Keybindings Configuration
+## ⌨️ Basic Keybindings Configuration
 
 This section documents the custom keyboard shortcuts configured via `AstroCore`. 
 Note that the **Leader** key is mapped to `<Space>`.
@@ -237,7 +242,7 @@ nvim --headless +q  # AstroVim handles plugin updates automatically
 
 ### Re-stowing Configurations
 ```bash
-cd ~/dotfiles
+cd ~/devbox
 stow -R git nvim starship tmux bashrc
 ```
 
@@ -312,7 +317,7 @@ The setup script automatically backs up your existing configurations before inst
 
 | Backup Location | What is Backed Up |
 |----------------|-------------------|
-| `/tmp/nvim` | Existing Neovim configuration from ~/dotfiles/nvim |
+| `/tmp/nvim` | Existing Neovim configuration from ~/devbox/nvim |
 | `~/.local/share/Trash/ or ~/.Trash (macOS)` | Existing configs via trash-cli |
 | `~/.config/nvim/lua/plugins/astrocore.lua.bak` | Existing AstroCore config |
 | `~/.config/nvim/lua/plugins/neo-tree.lua.bak` | Existing Neo-tree config |
